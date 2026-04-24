@@ -35,7 +35,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
         : '',
   );
 
-  String? _eNome, _eEmail, _eTelefone;
+  String? _eNome, _eTelefone;
   bool _loading = false;
   String? _localFotoPicked;
   bool _removerFoto = false;
@@ -79,13 +79,14 @@ class _ProfileEditViewState extends State<ProfileEditView>
     });
   }
 
+  String get _emailBloqueado => widget.usuario.email;
+
   Future<void> _save() async {
     setState(() {
       _eNome = validateMinLength(_nome.text, 2, label: 'Nome');
-      _eEmail = validateEmail(_email.text);
       _eTelefone = validatePhone(_telefone.text);
     });
-    if ([_eNome, _eEmail, _eTelefone].any((e) => e != null)) return;
+    if ([_eNome, _eTelefone].any((e) => e != null)) return;
 
     setState(() => _loading = true);
     try {
@@ -95,7 +96,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
         }
         final u = await _auth.updateProfile(
           nome: _nome.text,
-          email: _email.text,
+          email: _emailBloqueado,
           telefone: _telefone.text,
           clearAvatar: true,
         );
@@ -119,7 +120,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
         }
         final u = await _auth.updateProfile(
           nome: _nome.text,
-          email: _email.text,
+          email: _emailBloqueado,
           telefone: _telefone.text,
           avatarUrl: chave,
         );
@@ -132,7 +133,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
 
       final u = await _auth.updateProfile(
         nome: _nome.text,
-        email: _email.text,
+        email: _emailBloqueado,
         telefone: _telefone.text,
       );
       if (mounted) {
@@ -178,7 +179,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
               ),
               const SizedBox(height: 8),
               Text(
-                'Se o e-mail for alterado, o Supabase pode exigir confirmação.',
+                'O e-mail de acesso não pode ser alterado nesta tela.',
                 style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
               const SizedBox(height: 20),
@@ -193,8 +194,8 @@ class _ProfileEditViewState extends State<ProfileEditView>
                 label: 'E-mail',
                 icon: Icons.mail_outline,
                 controller: _email,
+                readOnly: true,
                 keyboardType: TextInputType.emailAddress,
-                errorText: _eEmail,
               ),
               const SizedBox(height: 16),
               CustomTextField(

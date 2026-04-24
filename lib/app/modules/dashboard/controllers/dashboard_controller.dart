@@ -14,14 +14,17 @@ class DashboardController extends ChangeNotifier {
   final _cliRepo = GetIt.I<ClienteRepository>();
   final _authRepo = GetIt.I<AuthRepository>();
 
-  bool loading = true;
+  /// Há leitura em andamento (SQLite) — exibe barra de progresso fina, sem
+  /// trocar a tela toda (evita “piscar” após sync / primeiro acesso).
+  bool inFlight = true;
+
   Usuario? usuario;
   List<OrdemServico> osList = [];
   List<Cliente> clientes = [];
   OsSummary summary = const OsSummary();
 
   Future<void> load() async {
-    loading = true;
+    inFlight = true;
     notifyListeners();
     try {
       usuario = await _authRepo.currentUser();
@@ -29,7 +32,7 @@ class DashboardController extends ChangeNotifier {
       clientes = await _cliRepo.listarTodos();
       summary = OsSummary.fromList(osList);
     } finally {
-      loading = false;
+      inFlight = false;
       notifyListeners();
     }
   }

@@ -35,14 +35,26 @@ class _ProfileViewState extends State<ProfileView> with UiFeedbackMixin {
   }
 
   Future<void> _load() async {
-    final u = await GetIt.I<AuthRepository>().currentUser();
-    final list = await GetIt.I<OrdemServicoRepository>().listarTodas();
-    if (!mounted) return;
-    setState(() {
-      _usuario = u;
-      _summary = OsSummary.fromList(list);
-      _loading = false;
-    });
+    Usuario? u;
+    try {
+      u = await GetIt.I<AuthRepository>().currentUser();
+      final list = await GetIt.I<OrdemServicoRepository>().listarTodas();
+      if (!mounted) return;
+      setState(() {
+        _usuario = u;
+        _summary = OsSummary.fromList(list);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      if (u != null) {
+        setState(() {
+          _usuario = u;
+          _summary = const OsSummary();
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _logout() async {

@@ -21,6 +21,7 @@ class CustomTextField extends StatefulWidget {
   final bool autofocus;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final bool readOnly;
 
   const CustomTextField({
     super.key,
@@ -40,6 +41,7 @@ class CustomTextField extends StatefulWidget {
     this.autofocus = false,
     this.textInputAction,
     this.onSubmitted,
+    this.readOnly = false,
   });
 
   @override
@@ -123,6 +125,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   onChanged: widget.onChanged,
                   validator: widget.validator,
                   obscureText: widget.obscure,
+                  readOnly: widget.readOnly,
                   autofocus: widget.autofocus,
                   keyboardType: widget.keyboardType,
                   inputFormatters: widget.inputFormatters,
@@ -131,7 +134,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   maxLines: widget.obscure ? 1 : widget.maxLines,
                   style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.text,
+                    color: widget.readOnly ? AppColors.textMuted : AppColors.text,
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,

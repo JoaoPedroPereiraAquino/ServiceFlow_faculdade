@@ -15,6 +15,7 @@ import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/evidence_image.dart';
 import '../../../shared/widgets/loader_overlay.dart';
+import '../../auth/repositories/auth_repository.dart';
 import '../../client/models/cliente.dart';
 import '../../client/repositories/cliente_repository.dart';
 import '../../client/views/client_form_view.dart';
@@ -137,6 +138,9 @@ class _OsFormViewState extends State<OsFormView>
       }
 
       final codigo = await _osRepo.proximoCodigo();
+      final u = await GetIt.I<AuthRepository>().currentUser();
+      final nomeTecnico =
+          (u?.nome != null && u!.nome.trim().isNotEmpty) ? u.nome.trim() : '—';
       final os = OrdemServico(
         codigo: codigo,
         clienteLocalUuid: _cliente!.localUuid,
@@ -147,6 +151,7 @@ class _OsFormViewState extends State<OsFormView>
         fotoAntesPath: _fotoAntesPath,
         fotoDepoisPath: _fotoDepoisPath,
         assinaturaBase64: sigB64,
+        tecnico: nomeTecnico,
       );
       await _osRepo.criar(os);
       if (!mounted) return;

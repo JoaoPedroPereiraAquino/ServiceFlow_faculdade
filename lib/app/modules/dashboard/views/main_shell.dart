@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../core/services/connectivity_service.dart';
+import '../../../core/services/theme_controller.dart';
 import '../../../core/services/offline_sync_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/bottom_nav.dart';
@@ -22,6 +23,8 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
+  /// Incrementa após criar OS para o [OsListView] remontar e chamar [_load] de novo.
+  int _osListKey = 0;
 
   late final OfflineSyncService _sync = GetIt.I<OfflineSyncService>();
   late final ConnectivityService _connectivity = GetIt.I<ConnectivityService>();
@@ -42,7 +45,7 @@ class _MainShellState extends State<MainShell> {
       MaterialPageRoute(builder: (_) => const OsFormView()),
     );
     if (created == true && mounted) {
-      setState(() {});
+      setState(() => _osListKey++);
     }
   }
 
@@ -56,32 +59,40 @@ class _MainShellState extends State<MainShell> {
         onNewOS: _openNewOS,
         onOpenProfile: () => setState(() => _index = 3),
       ),
-      const OsListView(),
+      OsListView(key: ValueKey(_osListKey)),
       const NotificationsView(),
       const ProfileView(),
     ];
 
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _OfflineBanner(connectivity: _connectivity, sync: _sync),
-            Expanded(
-              child: KeyedSubtree(
-                key: ValueKey(_index),
-                child: pages[_index],
-              ),
+    // [AppColors] é estático (sincronizado no root) e o shell pode não receber
+    // rebuild com `const` / mesma rota. Escutar [ThemeController] garante que
+    // bottom bar e [Scaffold] acompanhem claro/escuro de imediato.
+    return ListenableBuilder(
+      listenable: GetIt.I<ThemeController>(),
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: AppColors.bg,
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                _OfflineBanner(connectivity: _connectivity, sync: _sync),
+                Expanded(
+                  child: KeyedSubtree(
+                    key: ValueKey(_index),
+                    child: pages[_index],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _index,
-        onChanged: (i) => setState(() => _index = i),
-        onNewOS: _openNewOS,
-      ),
+          ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: _index,
+            onChanged: (i) => setState(() => _index = i),
+            onNewOS: _openNewOS,
+          ),
+        );
+      },
     );
   }
 }
@@ -99,7 +110,7 @@ class _OfflineBanner extends StatelessWidget {
         return ValueListenableBuilder<bool>(
           valueListenable: sync.syncing,
           builder: (_, syncing, __) {
-            if (online && !syncing) return const SizedBox.shrink();
+            final show = !online || (online && syncing);
             final bg = online ? AppColors.tint : AppColors.warningBg;
             final fg = online ? AppColors.primary : AppColors.warningFg;
             final icon = online ? Icons.sync : Icons.cloud_off_outlined;
@@ -107,26 +118,35 @@ class _OfflineBanner extends StatelessWidget {
                 ? 'Sincronizando dados…'
                 : 'Sem conexão · suas alterações ficam salvas localmente';
 
-            return Container(
-              width: double.infinity,
-              color: bg,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: Row(
-                children: [
-                  Icon(icon, size: 14, color: fg),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      txt,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: fg,
-                        fontWeight: FontWeight.w600,
+            // Altura animada evita o “salto” da coluna ao iniciar/terminar sync.
+            return AnimatedSize(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: show
+                  ? Container(
+                      width: double.infinity,
+                      color: bg,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(icon, size: 14, color: fg),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              txt,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: fg,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
+                    )
+                  : const SizedBox(width: double.infinity),
             );
           },
         );

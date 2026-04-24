@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
+import '../../../core/mixins/ui_feedback_mixin.dart';
 import '../../../core/services/offline_sync_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
@@ -18,7 +19,7 @@ class OsListView extends StatefulWidget {
   State<OsListView> createState() => _OsListViewState();
 }
 
-class _OsListViewState extends State<OsListView> {
+class _OsListViewState extends State<OsListView> with UiFeedbackMixin {
   late final OrdemServicoRepository _repo = GetIt.I<OrdemServicoRepository>();
   late final OfflineSyncService _sync = GetIt.I<OfflineSyncService>();
 
@@ -42,6 +43,107 @@ class _OsListViewState extends State<OsListView> {
       _all = list;
       _loading = false;
     });
+  }
+
+  Future<void> _abrirStatus(OrdemServico os) async {
+    OsStatus escolhido = os.osStatus;
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              20 + MediaQuery.viewPaddingOf(ctx).bottom,
+            ),
+            child: StatefulBuilder(
+              builder: (ctx, setS) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      os.codigo,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMuted,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Status da ordem',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      os.clienteNome ?? 'Cliente',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...OsStatus.values.map(
+                      (s) => RadioListTile<OsStatus>(
+                        value: s,
+                        groupValue: escolhido,
+                        onChanged: (v) {
+                          if (v != null) setS(() => escolhido = v);
+                        },
+                        title: Text(s.label),
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('Aplicar status'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancelar'),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+    if (ok != true || !mounted) return;
+    if (escolhido == os.osStatus) return;
+    try {
+      os.osStatus = escolhido;
+      await _repo.atualizar(os);
+      if (!mounted) return;
+      showFeedback('Status atualizado', kind: FeedbackKind.success);
+      await _load();
+    } catch (_) {
+      if (!mounted) return;
+      showFeedback('Não foi possível salvar o status. Tente de novo.',
+          kind: FeedbackKind.error);
+    }
   }
 
   List<OrdemServico> get _filtered {
@@ -127,7 +229,10 @@ class _OsListViewState extends State<OsListView> {
                             itemCount: filtered.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 10),
-                            itemBuilder: (_, i) => _OsCard(os: filtered[i]),
+                            itemBuilder: (_, i) => _OsCard(
+                              os: filtered[i],
+                              onTap: () => _abrirStatus(filtered[i]),
+                            ),
                           ),
                   ),
                 ],
@@ -245,18 +350,24 @@ class _Chip extends StatelessWidget {
 
 class _OsCard extends StatelessWidget {
   final OrdemServico os;
-  const _OsCard({required this.os});
+  final VoidCallback onTap;
+  const _OsCard({required this.os, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderSoft),
-      ),
-      child: Column(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.borderSoft),
+          ),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -285,7 +396,9 @@ class _OsCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            os.clienteNome ?? '—',
+            (os.clienteNome != null && os.clienteNome!.trim().isNotEmpty)
+                ? os.clienteNome!
+                : 'Cliente',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -320,18 +433,7 @@ class _OsCard extends StatelessWidget {
                 Text(
                   os.createdAt != null
                       ? fmtRelative(os.createdAt!)
-                      : '—',
-                  style: TextStyle(
-                      fontSize: 12, color: AppColors.textMuted),
-                ),
-                const SizedBox(width: 10),
-                Container(width: 1, height: 10, color: AppColors.borderSoft),
-                const SizedBox(width: 10),
-                Icon(Icons.person_outline,
-                    size: 14, color: AppColors.textMuted),
-                const SizedBox(width: 6),
-                Text(
-                  os.tecnico,
+                      : '',
                   style: TextStyle(
                       fontSize: 12, color: AppColors.textMuted),
                 ),
@@ -349,6 +451,8 @@ class _OsCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

@@ -106,6 +106,54 @@ class ClienteRepository extends BaseRepository<Cliente> {
     return ok;
   }
 
+  /// Quantas ordens de serviço apontam para este cliente (UUID local).
+  Future<int> contarOrdensVinculadas(String clienteLocalUuid) async {
+    final database = await db;
+    final r = await database.rawQuery(
+      'SELECT COUNT(*) as c FROM ordens_servico WHERE cliente_local_uuid = ?',
+      [clienteLocalUuid],
+    );
+    if (r.isEmpty) return 0;
+    return (r.first['c'] as int?) ?? 0;
+  }
+
+  /// Atualiza localmente e tenta sincronizar com o Supabase.
+  Future<Cliente> atualizar(Cliente c) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    c.userId = user?.id;
+    c.status = 'P';
+    await updateLocal(c);
+    if (user != null) {
+      final ok = await _pushOne(c, userId: user.id);
+      if (ok) await markSynced(c.localUuid, remoteId: c.remoteId);
+    }
+    return c;
+  }
+
+  /// Remove o cliente (local + remoto) se não houver OS vinculadas.
+  Future<void> excluir(Cliente c) async {
+    final n = await contarOrdensVinculadas(c.localUuid);
+    if (n > 0) {
+      throw Exception(
+        'Existem $n ordem(ns) de serviço vinculada(s) a este cliente. '
+        'Exclua ou reatribua as OS antes de remover o cadastro.',
+      );
+    }
+    final user = Supabase.instance.client.auth.currentUser;
+    if (c.remoteId != null && c.remoteId!.isNotEmpty && user != null) {
+      try {
+        await Supabase.instance.client
+            .from('clientes')
+            .delete()
+            .eq('id', c.remoteId!);
+      } catch (e, st) {
+        AppLogger.e('cliente.delete', e, st);
+        rethrow;
+      }
+    }
+    await deleteLocal(c.localUuid);
+  }
+
   Future<bool> _pushOne(Cliente c, {required String userId}) async {
     try {
       final inserted = await Supabase.instance.client

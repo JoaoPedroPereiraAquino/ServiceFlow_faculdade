@@ -11,6 +11,7 @@ import '../../../shared/widgets/status_badge.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/views/login_view.dart';
 import '../../client/views/client_form_view.dart';
+import '../../client/views/client_list_view.dart';
 import '../../service_order/models/ordem_servico.dart';
 import '../controllers/dashboard_controller.dart';
 
@@ -67,11 +68,6 @@ class _DashboardViewState extends State<DashboardView> with UiFeedbackMixin {
       value: _ctrl,
       child: Consumer<DashboardController>(
         builder: (_, c, __) {
-          if (c.loading) {
-            return const SafeArea(
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
           return RefreshIndicator(
             onRefresh: () async {
               await _sync.syncAll();
@@ -80,6 +76,12 @@ class _DashboardViewState extends State<DashboardView> with UiFeedbackMixin {
             child: ListView(
               padding: const EdgeInsets.only(bottom: 24),
               children: [
+                if (c.inFlight)
+                  LinearProgressIndicator(
+                    minHeight: 2,
+                    backgroundColor: AppColors.borderSoft,
+                    color: AppColors.primary,
+                  ),
                 _Header(
                   nome: c.usuario?.nome ?? 'Bem-vindo',
                   iniciais: c.usuario?.iniciais ?? 'SF',
@@ -101,6 +103,13 @@ class _DashboardViewState extends State<DashboardView> with UiFeedbackMixin {
                       MaterialPageRoute(builder: (_) => const ClientFormView()),
                     );
                     c.load();
+                  },
+                  onClientList: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ClientListView(),
+                      ),
+                    );
                   },
                 ),
                 SectionHeader(
@@ -461,14 +470,22 @@ class _KpiCard extends StatelessWidget {
 class _Atalhos extends StatelessWidget {
   final VoidCallback onNewOS;
   final VoidCallback onNewClient;
-  const _Atalhos({required this.onNewOS, required this.onNewClient});
+  final VoidCallback onClientList;
+  const _Atalhos({
+    required this.onNewOS,
+    required this.onNewClient,
+    required this.onClientList,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Row(
+            children: [
           Expanded(
             child: InkWell(
               onTap: onNewOS,
@@ -539,6 +556,52 @@ class _Atalhos extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: onClientList,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSoft),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.groups_outlined,
+                      color: AppColors.primary, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Meus clientes',
+                          style: TextStyle(
+                            color: AppColors.text,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Listar, editar ou excluir cadastros',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded,
+                      color: AppColors.textMuted, size: 22),
+                ],
               ),
             ),
           ),

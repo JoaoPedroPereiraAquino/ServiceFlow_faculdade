@@ -178,6 +178,19 @@ class OrdemServico extends BaseModel {
         'tecnico': tecnico,
         'local_id': localUuid,
       };
+
+  static const _placeholderTecnico = '—';
+
+  /// Linha com ícone de pessoa na listagem: prioriza o [tecnico]; se estiver
+  /// vazio (padrão), mostra o [clienteNome] para não ficar "—" sem sentido.
+  String get nomeResponsavelRodape {
+    if (tecnico.isNotEmpty && tecnico != _placeholderTecnico) {
+      return tecnico;
+    }
+    final n = clienteNome?.trim();
+    if (n != null && n.isNotEmpty) return n;
+    return _placeholderTecnico;
+  }
 }
 
 /// Resumo agregado do dashboard.

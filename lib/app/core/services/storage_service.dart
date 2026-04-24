@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -50,6 +51,8 @@ class StorageService {
     return remotePath;
   }
 
+  static const _kSignedUrlTimeout = Duration(seconds: 8);
+
   /// Gera uma Signed URL válida por [expiresInSeconds] (default 1 hora) para
   /// permitir exibir a imagem no `Image.network`.
   Future<String?> signedUrlFor(String? remotePath,
@@ -58,7 +61,10 @@ class StorageService {
     try {
       return await Supabase.instance.client.storage
           .from(bucket)
-          .createSignedUrl(remotePath, expiresInSeconds);
+          .createSignedUrl(remotePath, expiresInSeconds)
+          .timeout(_kSignedUrlTimeout);
+    } on TimeoutException {
+      return null;
     } catch (_) {
       return null;
     }
@@ -94,7 +100,10 @@ class StorageService {
     try {
       return await Supabase.instance.client.storage
           .from(bucketPerfil)
-          .createSignedUrl(remotePath, expiresInSeconds);
+          .createSignedUrl(remotePath, expiresInSeconds)
+          .timeout(_kSignedUrlTimeout);
+    } on TimeoutException {
+      return null;
     } catch (_) {
       return null;
     }

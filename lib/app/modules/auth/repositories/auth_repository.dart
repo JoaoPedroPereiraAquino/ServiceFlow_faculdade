@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,6 +18,18 @@ class AuthRepository {
 
   SupabaseClient get _client => Supabase.instance.client;
 
+  /// Limite para buscar `profiles` — sem rede o HTTP pode ficar pendente minutos.
+  static const _kProfileFetchTimeout = Duration(seconds: 5);
+
+  Usuario _usuarioMinimo(User user) {
+    return Usuario(
+      remoteId: user.id,
+      localUuid: user.id,
+      nome: user.email?.split('@').first ?? 'Usuário',
+      email: user.email ?? '',
+    );
+  }
+
   Future<Usuario?> currentUser() async {
     final user = _client.auth.currentUser;
     if (user == null) return null;
@@ -25,23 +39,16 @@ class AuthRepository {
           .from('profiles')
           .select()
           .eq('id', user.id)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(_kProfileFetchTimeout);
       if (row == null) {
-        return Usuario(
-          remoteId: user.id,
-          localUuid: user.id,
-          nome: user.email?.split('@').first ?? 'Usuário',
-          email: user.email ?? '',
-        );
+        return _usuarioMinimo(user);
       }
       return Usuario.fromJson(row);
+    } on TimeoutException {
+      return _usuarioMinimo(user);
     } catch (_) {
-      return Usuario(
-        remoteId: user.id,
-        localUuid: user.id,
-        nome: user.email?.split('@').first ?? 'Usuário',
-        email: user.email ?? '',
-      );
+      return _usuarioMinimo(user);
     }
   }
 

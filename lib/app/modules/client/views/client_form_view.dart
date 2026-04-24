@@ -13,7 +13,10 @@ import '../models/cliente.dart';
 import '../repositories/cliente_repository.dart';
 
 class ClientFormView extends StatefulWidget {
-  const ClientFormView({super.key});
+  /// Se preenchido, a tela funciona como edição do cadastro.
+  final Cliente? cliente;
+
+  const ClientFormView({super.key, this.cliente});
 
   @override
   State<ClientFormView> createState() => _ClientFormViewState();
@@ -29,6 +32,18 @@ class _ClientFormViewState extends State<ClientFormView>
   bool _loading = false;
 
   late final ClienteRepository _repo = GetIt.I<ClienteRepository>();
+
+  @override
+  void initState() {
+    super.initState();
+    final c = widget.cliente;
+    if (c != null) {
+      _nome.text = c.nome;
+      if (c.doc != null) _doc.text = c.doc!;
+      if (c.email != null) _email.text = c.email!;
+      if (c.telefone != null) _telefone.text = c.telefone!;
+    }
+  }
 
   @override
   void dispose() {
@@ -50,22 +65,42 @@ class _ClientFormViewState extends State<ClientFormView>
 
     setState(() => _loading = true);
     try {
-      final c = Cliente(
-        nome: _nome.text.trim(),
-        doc: _doc.text.trim(),
-        email: _email.text.trim(),
-        telefone: _telefone.text.trim(),
-      );
-      final salvo = await _repo.criar(c);
+      if (widget.cliente != null) {
+        final antes = widget.cliente!;
+        final salvo = await _repo.atualizar(
+          antes.copyWith(
+            nome: _nome.text.trim(),
+            doc: _doc.text.trim(),
+            email: _email.text.trim(),
+            telefone: _telefone.text.trim(),
+          ),
+        );
+        if (!mounted) return;
+        showFeedback('Cliente atualizado', kind: FeedbackKind.success);
+        Navigator.of(context).pop<Cliente>(salvo);
+      } else {
+        final c = Cliente(
+          nome: _nome.text.trim(),
+          doc: _doc.text.trim(),
+          email: _email.text.trim(),
+          telefone: _telefone.text.trim(),
+        );
+        final salvo = await _repo.criar(c);
+        if (!mounted) return;
+        showFeedback('Cliente cadastrado com sucesso',
+            kind: FeedbackKind.success);
+        Navigator.of(context).pop<Cliente>(salvo);
+      }
+    } catch (e) {
       if (!mounted) return;
-      showFeedback('Cliente cadastrado com sucesso',
-          kind: FeedbackKind.success);
-      Navigator.of(context).pop<Cliente>(salvo);
-    } catch (_) {
-      if (!mounted) return;
-      showFeedback('Salvo localmente — sincronizaremos quando voltar online.',
-          kind: FeedbackKind.warning);
-      Navigator.of(context).pop<Cliente?>(null);
+      if (widget.cliente != null) {
+        showFeedback('Não foi possível salvar. Tente de novo.',
+            kind: FeedbackKind.error);
+      } else {
+        showFeedback('Salvo localmente — sincronizaremos quando voltar online.',
+            kind: FeedbackKind.warning);
+        Navigator.of(context).pop<Cliente?>(null);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -75,7 +110,9 @@ class _ClientFormViewState extends State<ClientFormView>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const AppBarCustom(title: 'Novo cliente'),
+      appBar: AppBarCustom(
+        title: widget.cliente == null ? 'Novo cliente' : 'Editar cliente',
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(24, 20, 24, 40 + viewBottomInset(context)),
         child: Column(

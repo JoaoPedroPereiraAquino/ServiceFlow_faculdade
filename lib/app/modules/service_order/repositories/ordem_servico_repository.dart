@@ -63,6 +63,21 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
     return getAllLocal(orderBy: 'created_at DESC');
   }
 
+  /// Atualiza a OS no SQLite e tenta enviar ao Supabase (offline-first).
+  Future<OrdemServico> atualizar(OrdemServico os) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    os.userId = user?.id;
+    os.status = 'P';
+    await updateLocal(os);
+    if (user != null) {
+      final ok = await _pushOne(os, userId: user.id);
+      if (ok) {
+        await markSynced(os.localUuid, remoteId: os.remoteId);
+      }
+    }
+    return os;
+  }
+
   /// Pull incremental: traz apenas registros com `updated_at > lastSync`.
   Future<void> pullDoServidor() async {
     final user = Supabase.instance.client.auth.currentUser;
