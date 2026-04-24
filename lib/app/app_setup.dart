@@ -51,6 +51,7 @@ Future<void> setupApp() async {
   await themeController.load();
 
   final sync = OfflineSyncService(
+    authRepo: getIt<AuthRepository>(),
     clienteRepo: getIt<ClienteRepository>(),
     osRepo: getIt<OrdemServicoRepository>(),
     notifRepo: getIt<NotificacaoRepository>(),

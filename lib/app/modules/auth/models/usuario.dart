@@ -13,6 +13,9 @@ class Usuario extends BaseModel {
   /// Chave no Storage (`perfil-avatars`), ex.: `<userId>/avatar_....jpg`
   String? avatarUrl;
 
+  /// Ficheiro local (foto escolhida offline, ainda por enviar) — não é JSON.
+  String? avatarPendentePath;
+
   Usuario({
     super.localId,
     super.remoteId,
@@ -25,6 +28,7 @@ class Usuario extends BaseModel {
     this.avaliacao = 0,
     this.token,
     this.avatarUrl,
+    this.avatarPendentePath,
     super.createdAt,
   });
 
@@ -47,6 +51,7 @@ class Usuario extends BaseModel {
       cargo: j['cargo'] as String?,
       avaliacao: ((j['avaliacao'] as num?) ?? 0).toDouble(),
       avatarUrl: j['avatar_url'] as String?,
+      avatarPendentePath: null,
       createdAt: j['created_at'] != null ? DateTime.tryParse(j['created_at']) : null,
     );
   }

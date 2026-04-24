@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../modules/auth/repositories/auth_repository.dart';
 import '../../modules/client/repositories/cliente_repository.dart';
 import '../../modules/notifications/repositories/notificacao_repository.dart';
 import '../../modules/service_order/repositories/ordem_servico_repository.dart';
@@ -17,12 +18,14 @@ import 'connectivity_service.dart';
 ///   3) pull (clientes / OS / notificações) do servidor para o local
 class OfflineSyncService {
   OfflineSyncService({
+    required this.authRepo,
     required this.clienteRepo,
     required this.osRepo,
     required this.notifRepo,
     required this.connectivity,
   });
 
+  final AuthRepository authRepo;
   final ClienteRepository clienteRepo;
   final OrdemServicoRepository osRepo;
   final NotificacaoRepository notifRepo;
@@ -54,6 +57,8 @@ class OfflineSyncService {
 
     syncing.value = true;
     try {
+      await authRepo.sincronizarPerfilPendente();
+
       // 1) Push CLIENTES primeiro — assim, qualquer OS pendente que tenha
       //    sido criada offline com o cliente também pendente conseguirá
       //    resolver o cliente_remote_id antes de subir.

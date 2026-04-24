@@ -9,12 +9,13 @@ import 'package:sqflite/sqflite.dart';
 /// - ordens_servico
 /// - notificacoes
 /// - sync_queue (fila de sincronização)
+/// - perfil_cache (dados do utilizador logado)
 class DatabaseHelper {
   DatabaseHelper._();
   static final DatabaseHelper instance = DatabaseHelper._();
 
   static const _dbName = 'serviceflow.db';
-  static const _dbVersion = 2;
+  static const _dbVersion = 3;
 
   Database? _db;
 
@@ -47,6 +48,28 @@ class DatabaseHelper {
         "ALTER TABLE ordens_servico ADD COLUMN foto_depois_remote_path TEXT",
       );
     }
+    if (from < 3) {
+      await _createPerfilCache(db);
+    }
+  }
+
+  static Future<void> _createPerfilCache(Database db) {
+    return db.execute('''
+      CREATE TABLE IF NOT EXISTS perfil_cache (
+        user_id TEXT PRIMARY KEY NOT NULL,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL,
+        telefone TEXT,
+        empresa TEXT,
+        cargo TEXT,
+        avaliacao REAL NOT NULL DEFAULT 0,
+        avatar_url TEXT,
+        profile_pending_sync INTEGER NOT NULL DEFAULT 0,
+        avatar_local_pending TEXT,
+        avatar_remove_pending INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+      );
+    ''');
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -109,6 +132,23 @@ class DatabaseHelper {
     batch.execute('CREATE INDEX idx_os_sync ON ordens_servico(status);');
 
     batch.execute('''
+      CREATE TABLE perfil_cache (
+        user_id TEXT PRIMARY KEY NOT NULL,
+        nome TEXT NOT NULL,
+        email TEXT NOT NULL,
+        telefone TEXT,
+        empresa TEXT,
+        cargo TEXT,
+        avaliacao REAL NOT NULL DEFAULT 0,
+        avatar_url TEXT,
+        profile_pending_sync INTEGER NOT NULL DEFAULT 0,
+        avatar_local_pending TEXT,
+        avatar_remove_pending INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+      );
+    ''');
+
+    batch.execute('''
       CREATE TABLE notificacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         local_uuid TEXT UNIQUE NOT NULL,
@@ -153,6 +193,7 @@ class DatabaseHelper {
       'ordens_servico',
       'servicos',
       'clientes',
+      'perfil_cache',
     ]) {
       batch.delete(t);
     }

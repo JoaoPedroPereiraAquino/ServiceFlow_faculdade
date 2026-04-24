@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/mixins/ui_feedback_mixin.dart';
+import '../../../core/services/connectivity_service.dart';
 import '../../../core/mixins/validator_mixin.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -81,6 +86,17 @@ class _ProfileEditViewState extends State<ProfileEditView>
 
   String get _emailBloqueado => widget.usuario.email;
 
+  bool get _online => GetIt.I<ConnectivityService>().isOnline.value;
+
+  /// Copia a foto escolhida para um ficheiro estável na app (envio com rede).
+  Future<String?> _copiaFotoPendente(String src) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final dest = p.join(
+        dir.path, 'profile_pending_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    await File(src).copy(dest);
+    return dest;
+  }
+
   Future<void> _save() async {
     setState(() {
       _eNome = validateMinLength(_nome.text, 2, label: 'Nome');
@@ -90,39 +106,52 @@ class _ProfileEditViewState extends State<ProfileEditView>
 
     setState(() => _loading = true);
     try {
-      if (_removerFoto) {
-        if (_fotoInicial != null) {
-          await _storage.removeProfileObject(_fotoInicial);
-        }
-        final u = await _auth.updateProfile(
-          nome: _nome.text,
-          email: _emailBloqueado,
-          telefone: _telefone.text,
-          clearAvatar: true,
-        );
-        if (mounted) {
-          showFeedback('Dados salvos', kind: FeedbackKind.success);
-          Navigator.of(context).pop<Usuario>(u);
-        }
-        return;
-      }
-
-      if (_localFotoPicked != null) {
-        final chave = await _storage.uploadProfilePhoto(_localFotoPicked!);
-        if (chave == null) {
+      if (_online) {
+        if (_removerFoto) {
+          if (_fotoInicial != null) {
+            await _storage.removeProfileObject(_fotoInicial);
+          }
+          final u = await _auth.updateProfile(
+            nome: _nome.text,
+            email: _emailBloqueado,
+            telefone: _telefone.text,
+            clearAvatar: true,
+          );
           if (mounted) {
-            showFeedback('Falha ao enviar a imagem', kind: FeedbackKind.error);
+            showFeedback('Dados salvos', kind: FeedbackKind.success);
+            Navigator.of(context).pop<Usuario>(u);
           }
           return;
         }
-        if (_fotoInicial != null && _fotoInicial != chave) {
-          await _storage.removeProfileObject(_fotoInicial);
+
+        if (_localFotoPicked != null) {
+          final chave = await _storage.uploadProfilePhoto(_localFotoPicked!);
+          if (chave == null) {
+            if (mounted) {
+              showFeedback('Falha ao enviar a imagem', kind: FeedbackKind.error);
+            }
+            return;
+          }
+          if (_fotoInicial != null && _fotoInicial != chave) {
+            await _storage.removeProfileObject(_fotoInicial);
+          }
+          final u = await _auth.updateProfile(
+            nome: _nome.text,
+            email: _emailBloqueado,
+            telefone: _telefone.text,
+            avatarUrl: chave,
+          );
+          if (mounted) {
+            showFeedback('Dados salvos', kind: FeedbackKind.success);
+            Navigator.of(context).pop<Usuario>(u);
+          }
+          return;
         }
+
         final u = await _auth.updateProfile(
           nome: _nome.text,
           email: _emailBloqueado,
           telefone: _telefone.text,
-          avatarUrl: chave,
         );
         if (mounted) {
           showFeedback('Dados salvos', kind: FeedbackKind.success);
@@ -131,13 +160,29 @@ class _ProfileEditViewState extends State<ProfileEditView>
         return;
       }
 
+      // —— Sem internet: grava no SQLite; fotos pendentes sincronizam depois. ——
+      String? localPend;
+      if (_localFotoPicked != null) {
+        try {
+          localPend = await _copiaFotoPendente(_localFotoPicked!);
+        } catch (_) {
+          if (mounted) {
+            showFeedback('Não foi possível guardar a imagem localmente.',
+                kind: FeedbackKind.error);
+          }
+          return;
+        }
+      }
       final u = await _auth.updateProfile(
         nome: _nome.text,
         email: _emailBloqueado,
         telefone: _telefone.text,
+        clearAvatar: _removerFoto,
+        pendingAvatarPathLocal: localPend,
       );
       if (mounted) {
-        showFeedback('Dados salvos', kind: FeedbackKind.success);
+        showFeedback('Salvo no dispositivo. Sincronizaremos ao voltar a rede.',
+            kind: FeedbackKind.success);
         Navigator.of(context).pop<Usuario>(u);
       }
     } catch (_) {

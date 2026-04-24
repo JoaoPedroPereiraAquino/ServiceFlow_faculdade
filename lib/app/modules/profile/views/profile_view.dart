@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../core/mixins/ui_feedback_mixin.dart';
+import '../../../core/services/connectivity_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/theme_controller.dart';
 import '../../../core/theme/app_colors.dart';
@@ -154,6 +157,7 @@ class _ProfileViewState extends State<ProfileView> with UiFeedbackMixin {
           _HeaderCard(
             usuario: _usuario!,
             storage: GetIt.I<StorageService>(),
+            connectivity: GetIt.I<ConnectivityService>(),
             onEditPhoto: _abrirDadosPessoais,
           ),
           const SizedBox(height: 20),
@@ -245,11 +249,13 @@ class _ProfileViewState extends State<ProfileView> with UiFeedbackMixin {
 class _HeaderCard extends StatelessWidget {
   final Usuario usuario;
   final StorageService storage;
+  final ConnectivityService connectivity;
   final VoidCallback onEditPhoto;
 
   const _HeaderCard({
     required this.usuario,
     required this.storage,
+    required this.connectivity,
     required this.onEditPhoto,
   });
 
@@ -280,6 +286,7 @@ class _HeaderCard extends StatelessWidget {
             child: _HeaderAvatar(
               iniciais: usuario.iniciais,
               storageKey: usuario.avatarUrl,
+              localFilePath: usuario.avatarPendentePath,
               storage: storage,
             ),
           ),
@@ -310,28 +317,38 @@ class _HeaderCard extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _Dot(color: Color(0xFF34D399), size: 6),
-                      SizedBox(width: 5),
-                      Text(
-                        'Online',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: connectivity.isOnline,
+                  builder: (_, online, __) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _Dot(
+                            color: online
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFFFBBF24),
+                            size: 6,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            online ? 'Online' : 'Sem conexão',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -345,11 +362,14 @@ class _HeaderCard extends StatelessWidget {
 class _HeaderAvatar extends StatelessWidget {
   final String iniciais;
   final String? storageKey;
+  /// Foto escolhida offline (ainda por subir).
+  final String? localFilePath;
   final StorageService storage;
 
   const _HeaderAvatar({
     required this.iniciais,
     required this.storageKey,
+    required this.localFilePath,
     required this.storage,
   });
 
@@ -374,6 +394,19 @@ class _HeaderAvatar extends StatelessWidget {
   }
 
   Widget _buildContent() {
+    final local = localFilePath;
+    if (local != null && local.isNotEmpty) {
+      final f = File(local);
+      if (f.existsSync()) {
+        return Image.file(
+          f,
+          width: 64,
+          height: 64,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _iniciais(),
+        );
+      }
+    }
     if (storageKey == null || storageKey!.isEmpty) {
       return _iniciais();
     }
