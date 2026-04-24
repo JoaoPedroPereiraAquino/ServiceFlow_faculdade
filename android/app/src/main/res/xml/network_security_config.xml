@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Estrategia "deny by default":
+    - Bloqueia trafego cleartext (HTTP) em todo o app.
+    - O Supabase (rccmmsdxueijgoalqnwr.supabase.co) e supabase.co em geral
+      sao servidos exclusivamente sobre HTTPS via certificados validos.
+    - Caso queira ativar Certificate Pinning no futuro, declare aqui um
+      <pin-set> dentro de <domain-config>.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">supabase.co</domain>
+    </domain-config>
+</network-security-config>

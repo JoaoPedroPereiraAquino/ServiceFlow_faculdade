@@ -1,0 +1,22 @@
+# =============================================================================
+# Configuração de assinatura do APK/AAB de release.
+#
+# Copie este arquivo para `android/key.properties` e preencha os valores
+# REAIS. Esse arquivo NÃO deve ser commitado (já está no .gitignore).
+#
+# Para gerar o keystore (uma única vez na vida do app):
+#
+#   keytool -genkey -v \
+#     -keystore android/app/upload-keystore.jks \
+#     -storetype JKS \
+#     -keyalg RSA -keysize 2048 -validity 10000 \
+#     -alias serviceflow
+#
+# Guarde a SENHA, o ALIAS e o ARQUIVO em um cofre seguro (1Password,
+# Bitwarden, Vault). Sem o keystore não é possível publicar updates do
+# app na Play Store.
+# =============================================================================
+storeFile=upload-keystore.jks
+storePassword=ALTERAR_AQUI
+keyAlias=serviceflow
+keyPassword=ALTERAR_AQUI

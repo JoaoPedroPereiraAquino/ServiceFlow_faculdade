@@ -1,0 +1,62 @@
+name: serviceflow
+description: "Gestão inteligente de Ordens de Serviço — offline-first com SQLite + Supabase."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Estado / DI
+  provider: ^6.1.2
+  get_it: ^7.7.0
+
+  # HTTP / API
+  dio: ^5.7.0
+
+  # Supabase
+  supabase_flutter: ^2.8.0
+
+  # Persistência local
+  sqflite: ^2.4.1
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  flutter_secure_storage: ^9.2.2
+
+  # Conectividade / Sync
+  connectivity_plus: ^6.1.0
+
+  # UI / Hardware
+  image_picker: ^1.1.2
+  signature: ^5.5.0
+  url_launcher: ^6.3.1
+
+  # Utils
+  intl: ^0.20.1
+  uuid: ^4.5.1
+  google_fonts: ^6.2.1
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter:
+  uses-material-design: true
+
+# Gera ícones Android a partir de ServiceFlow_logo.png:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: ServiceFlow_logo.png
+  adaptive_icon_background: "#0F766E"
+  adaptive_icon_foreground: ServiceFlow_logo.png

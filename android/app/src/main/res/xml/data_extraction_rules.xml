@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Bloqueia totalmente o auto-backup (Google Drive) e o transferencial
+    (device-to-device) de TODOS os dados do app: SQLite, fotos cacheadas,
+    flutter_secure_storage e shared preferences. Sem isto, dados pessoais
+    de clientes (nome, doc, telefone) poderiam ser persistidos na conta
+    Google do usuario sem qualquer criptografia adicional.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="file" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="file" />
+    </device-transfer>
+</data-extraction-rules>
