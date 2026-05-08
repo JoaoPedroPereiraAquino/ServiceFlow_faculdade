@@ -1,5 +1,5 @@
-// ServiceFlow — app de ordens de serviço.
-// Configura tema, barra do sistema e tela inicial conforme a sessão na nuvem.
+// ServiceFlow — aplicativo de ordens de serviço.
+// Configura tema, barra do sistema e a primeira tela conforme a sessão na nuvem.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
