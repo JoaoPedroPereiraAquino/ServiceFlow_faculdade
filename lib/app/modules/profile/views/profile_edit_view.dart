@@ -1,3 +1,4 @@
+// Editar nome, telefone e foto; salva pelo AuthRepository.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -88,7 +89,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
 
   bool get _online => GetIt.I<ConnectivityService>().isOnline.value;
 
-  /// Copia a foto escolhida para um ficheiro estável na app (envio com rede).
+  /// Copia a foto para uma pasta estável da app antes de enviar.
   Future<String?> _copiaFotoPendente(String src) async {
     final dir = await getApplicationDocumentsDirectory();
     final dest = p.join(
@@ -160,7 +161,7 @@ class _ProfileEditViewState extends State<ProfileEditView>
         return;
       }
 
-      // —— Sem internet: grava no SQLite; fotos pendentes sincronizam depois. ——
+      // Sem rede: grava no aparelho; a foto envia quando voltar a internet.
       String? localPend;
       if (_localFotoPicked != null) {
         try {

@@ -1,9 +1,9 @@
+// Telas de login usam isto; por baixo vai a camada que fala com servidor e sessão.
 import 'package:get_it/get_it.dart';
 
 import '../models/usuario.dart';
 import '../repositories/auth_repository.dart';
 
-/// Controller fino de Auth — encapsula o repositório resolvido pelo Service Locator.
 class AuthController {
   final AuthRepository _repo = GetIt.I<AuthRepository>();
 

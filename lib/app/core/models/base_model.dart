@@ -1,14 +1,13 @@
-/// Contrato base para toda entidade de negócio do ServiceFlow.
-///
-/// Toda nova entidade DEVE herdar desta classe (regra do README).
+/// Base comum aos dados salvos: código local, código no servidor, identificador no aparelho e datas.
+
 abstract class BaseModel {
-  /// Identificador local (SQLite). Pode ser nulo até a primeira persistência.
+  /// Número interno no banco local. Pode ficar vazio até a primeira gravação.
   int? localId;
 
-  /// Identificador remoto (UUID Supabase). Nulo enquanto pendente de sincronização.
+  /// Código que o servidor usa nos dados na nuvem. Fica vazio até sincronizar.
   String? remoteId;
 
-  /// Identificador estável usado durante a fase offline (UUID gerado no cliente).
+  /// Código fixo gerado no aparelho para reconhecer o mesmo registro antes e depois de enviar ao servidor.
   String localUuid;
 
   DateTime? createdAt;
@@ -20,9 +19,9 @@ abstract class BaseModel {
     this.createdAt,
   });
 
-  /// Conversão para persistência local (SQLite).
+  /// Formato para gravar no banco local.
   Map<String, dynamic> toMap();
 
-  /// Conversão para o backend (JSON enviado ao Supabase).
+  /// Formato para enviar ao servidor (JSON).
   Map<String, dynamic> toJson();
 }

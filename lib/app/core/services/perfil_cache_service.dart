@@ -1,10 +1,9 @@
+// Copia o perfil no banco do aparelho para abrir rápido mesmo sem internet.
 import 'package:sqflite/sqflite.dart';
 
 import '../../modules/auth/models/usuario.dart';
 import 'database_helper.dart';
 
-/// Cache local do perfil do utilizador (SQLite) — leitura offline e fila de
-/// sincronização após edições sem rede.
 class PerfilCacheService {
   PerfilCacheService._();
   static final PerfilCacheService instance = PerfilCacheService._();
@@ -13,7 +12,7 @@ class PerfilCacheService {
 
   Future<Database> get _db => DatabaseHelper.instance.database;
 
-  /// [markPending] `true` quando o utilizador alterou dados ainda não enviados ao Supabase.
+  /// [markPending] verdadeiro quando há alterações ainda não enviadas ao servidor.
   Future<void> upsert(
     Usuario u, {
     required bool markPending,
@@ -72,7 +71,7 @@ class PerfilCacheService {
     );
   }
 
-  /// Estado para o envio do perfil ao Supabase (foto a remover, ficheiro local, etc.)
+  /// O que falta enviar do perfil ao servidor (foto a apagar, arquivo local, etc.).
   Future<PerfilPendenteSyncState?> loadPendenteEnvio(String userId) async {
     final db = await _db;
     final rows = await db.query(
@@ -90,7 +89,7 @@ class PerfilCacheService {
     );
   }
 
-  /// Se existe alteração local por sincronizar.
+  /// Se há alteração local ainda não enviada.
   Future<bool> hasPending(String userId) async {
     final db = await _db;
     final r = await db.query(
@@ -110,7 +109,7 @@ class PerfilCacheService {
   }
 }
 
-/// Dados do perfil marcado como pendente de [AuthRepository.sincronizarPerfilPendente].
+/// Perfil com alterações locais esperando envio (ver repositório de autenticação).
 class PerfilPendenteSyncState {
   const PerfilPendenteSyncState({
     required this.user,

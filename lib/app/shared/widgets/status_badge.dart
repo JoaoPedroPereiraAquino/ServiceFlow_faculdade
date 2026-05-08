@@ -1,3 +1,4 @@
+// Faixa com o estado da OS (aberta, em execução, feita).
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';

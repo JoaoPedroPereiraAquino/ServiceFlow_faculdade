@@ -1,5 +1,7 @@
+// Aparência Material 3 com fonte Inter, nos modos claro e escuro.
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 class AppTheme {
   AppTheme._();
 

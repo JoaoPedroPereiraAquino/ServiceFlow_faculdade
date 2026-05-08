@@ -1,9 +1,11 @@
+// Dados da OS: status, valor, fotos (aqui e no servidor) e assinatura em Base64.
 import 'package:uuid/uuid.dart';
 
 import '../../../core/models/base_model.dart';
 
 enum OsStatus { aberto, execucao, executada }
 
+/// Texto para gravar no banco e para mostrar na tela.
 extension OsStatusX on OsStatus {
   String get raw {
     switch (this) {
@@ -48,12 +50,11 @@ class OrdemServico extends BaseModel {
   String descricao;
   double valor;
   OsStatus osStatus;
-  /// Caminho local do arquivo (file://...) capturado pela câmera.
+  /// Foto salva no aparelho (câmera).
   String? fotoAntesPath;
   String? fotoDepoisPath;
 
-  /// Caminho dentro do bucket `os-evidencias` (`<userId>/<uuid>.jpg`).
-  /// Usado para gerar Signed URL na exibição.
+  /// Chave da foto no armazenamento (para abrir na tela).
   String? fotoAntesRemotePath;
   String? fotoDepoisRemotePath;
 
@@ -61,7 +62,7 @@ class OrdemServico extends BaseModel {
   String tecnico;
   String? userId;
 
-  /// 'P' = pendente sync, 'S' = sincronizada
+  /// P = ainda não enviada ao servidor; S = já enviada.
   String status;
 
   OrdemServico({
@@ -124,8 +125,7 @@ class OrdemServico extends BaseModel {
       descricao: (j['descricao'] as String?) ?? '',
       valor: ((j['valor'] as num?) ?? 0).toDouble(),
       osStatus: OsStatusX.parse(j['status'] as String?),
-      // No JSON do Supabase, foto_antes_path/foto_depois_path armazenam o
-      // *path remoto* (chave dentro do bucket). Mantemos compatibilidade.
+      // Na resposta da API esses campos vêm como caminho remoto; aqui viram os campos *_remote.
       fotoAntesPath: null,
       fotoDepoisPath: null,
       fotoAntesRemotePath: (j['foto_antes_remote_path'] as String?) ??
@@ -181,8 +181,7 @@ class OrdemServico extends BaseModel {
 
   static const _placeholderTecnico = '—';
 
-  /// Linha com ícone de pessoa na listagem: prioriza o [tecnico]; se estiver
-  /// vazio (padrão), mostra o [clienteNome] para não ficar "—" sem sentido.
+  /// Nome no rodapé: técnico; se não houver, usa o cliente.
   String get nomeResponsavelRodape {
     if (tecnico.isNotEmpty && tecnico != _placeholderTecnico) {
       return tecnico;
@@ -193,7 +192,7 @@ class OrdemServico extends BaseModel {
   }
 }
 
-/// Resumo agregado do dashboard.
+/// Contagem e somas para o painel inicial.
 class OsSummary {
   final int total, aberto, execucao, executada;
   final double totalValue, abertoValue, execucaoValue, executadaValue;

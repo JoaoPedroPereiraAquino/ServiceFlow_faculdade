@@ -1,4 +1,4 @@
-/// Mixin com validadores reutilizáveis para formulários do ServiceFlow.
+/// Checagens repetidas nos formulários (e-mail, senha, CPF, etc.).
 mixin ValidatorMixin {
   String? validateEmail(String? v) {
     if (v == null || v.trim().isEmpty) return 'Informe seu e-mail';
@@ -6,10 +6,7 @@ mixin ValidatorMixin {
     return null;
   }
 
-  /// Política de senha alinhada às boas práticas OWASP ASVS L1:
-  /// - mínimo de 8 caracteres
-  /// - pelo menos uma letra E pelo menos um dígito
-  /// - máximo de 72 (limite do bcrypt usado pelo Supabase Auth)
+  /// Senha: no mínimo 8 caracteres, letra e número; no máximo 72 (limite usual no login seguro).
   String? validatePassword(String? v) {
     if (v == null || v.isEmpty) return 'Informe sua senha';
     if (v.length < 8) return 'A senha deve ter no mínimo 8 caracteres';

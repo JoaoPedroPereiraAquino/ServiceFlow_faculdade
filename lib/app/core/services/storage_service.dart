@@ -1,3 +1,5 @@
+// Envia fotos de ordens e de perfil; gera links temporários para mostrar imagens privadas na nuvem.
+// Cada usuário fica com sua pasta no armazenamento, conforme as regras no servidor.
 import 'dart:async';
 import 'dart:io';
 
@@ -5,10 +7,6 @@ import 'package:path/path.dart' as p;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-/// Serviço de upload/download para o bucket privado `os-evidencias`.
-///
-/// Convenção do path remoto: `<userId>/ordens_servico/<localUuid>/<arquivo>`
-/// — alinhado com a RLS, que só libera o usuário em sua pasta `<userId>/`.
 class StorageService {
   StorageService._();
   static final StorageService instance = StorageService._();
@@ -17,9 +15,8 @@ class StorageService {
   static const String bucketPerfil = 'perfil-avatars';
   final _uuid = const Uuid();
 
-  /// Faz upload do arquivo local para o bucket e devolve a *chave remota*
-  /// (não a URL pública — o bucket é privado). Retorna `null` se não houver
-  /// usuário autenticado ou se o arquivo não existir.
+  /// Envia o arquivo para a nuvem e devolve o caminho lá (não é link aberto).
+  /// Devolve nulo se não houver usuário logado ou se o arquivo não existir.
   Future<String?> uploadOsPhoto({
     required String localUuidOs,
     required String localFilePath,
@@ -53,8 +50,7 @@ class StorageService {
 
   static const _kSignedUrlTimeout = Duration(seconds: 8);
 
-  /// Gera uma Signed URL válida por [expiresInSeconds] (default 1 hora) para
-  /// permitir exibir a imagem no `Image.network`.
+  /// Gera um link temporário (válido alguns minutos ou horas) para usar em Image.network.
   Future<String?> signedUrlFor(String? remotePath,
       {int expiresInSeconds = 3600}) async {
     if (remotePath == null || remotePath.isEmpty) return null;
@@ -70,7 +66,7 @@ class StorageService {
     }
   }
 
-  /// Upload de foto de perfil — path: `<userId>/avatar_<uuid>.<ext>`
+  /// Envia foto de perfil; caminho na nuvem: pasta do usuário + nome do arquivo.
   Future<String?> uploadProfilePhoto(String localFilePath) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return null;
@@ -93,7 +89,7 @@ class StorageService {
     return remotePath;
   }
 
-  /// Signed URL do bucket de perfil.
+  /// Link temporário para imagem no espaço de fotos de perfil.
   Future<String?> signedUrlForProfile(String? remotePath,
       {int expiresInSeconds = 3600}) async {
     if (remotePath == null || remotePath.isEmpty) return null;

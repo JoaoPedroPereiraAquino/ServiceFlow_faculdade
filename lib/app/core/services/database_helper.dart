@@ -1,15 +1,9 @@
+// Cria o arquivo do banco no aparelho, a versão das tabelas e as migrações.
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
-/// Helper de acesso ao SQLite.
-///
-/// Schema offline-first:
-/// - clientes
-/// - servicos
-/// - ordens_servico
-/// - notificacoes
-/// - sync_queue (fila de sincronização)
-/// - perfil_cache (dados do utilizador logado)
+/// Abre o banco local, cria ou atualiza tabelas e deixa o app usar os dados.
+/// Inclui clientes, ordens, avisos, cópia do perfil e fila de envio pendente.
 class DatabaseHelper {
   DatabaseHelper._();
   static final DatabaseHelper instance = DatabaseHelper._();
@@ -183,7 +177,7 @@ class DatabaseHelper {
     _db = null;
   }
 
-  /// Limpa tudo (logout / troca de usuário).
+/// Apaga os dados locais (ao sair ou trocar de conta).
   Future<void> wipe() async {
     final db = await database;
     final batch = db.batch();

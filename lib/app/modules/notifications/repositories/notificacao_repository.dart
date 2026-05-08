@@ -1,3 +1,4 @@
+// Lê alertas do aparelho e busca novos no servidor; contagem para o badge da barra.
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,9 +8,7 @@ import '../../../core/services/sync_state_store.dart';
 import '../models/notificacao.dart';
 
 class NotificacaoRepository extends BaseRepository<Notificacao> {
-  /// Contagem de notificações não lidas. UI escuta pra exibir badge no
-  /// bottom nav. Atualizado em `listar()`, `naoLidas()`, `marcarComoLida(...)`,
-  /// `marcarTodasComoLidas()` e `pullDoServidor()`.
+  /// Quantas notificações não lidas. A barra inferior usa isso no badge.
   final ValueNotifier<int> unreadCount = ValueNotifier<int>(0);
 
   @override
@@ -35,15 +34,13 @@ class NotificacaoRepository extends BaseRepository<Notificacao> {
     return (r.first['n'] as int?) ?? 0;
   }
 
-  /// Recalcula a contagem local de não-lidas e notifica os listeners
-  /// (badge no bottom nav). Chame após qualquer mutação local.
+  /// Atualiza o número de não lidas (após marcar ou receber lista).
   Future<void> refreshUnreadCount() async {
     final n = await naoLidas();
     if (unreadCount.value != n) unreadCount.value = n;
   }
 
-  /// Pull incremental por `updated_at`, com fallback para `created_at`
-  /// (notificações antigas que ainda não tinham trigger).
+  /// Busca no servidor só itens novos ou alterados desde a última vez.
   Future<void> pullDoServidor() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
@@ -108,8 +105,7 @@ class NotificacaoRepository extends BaseRepository<Notificacao> {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       try {
-        // Filtrar por `lida=false` evita estourar `updated_at` em linhas
-        // já lidas — assim o pull incremental seguinte não traz o lote inteiro.
+        // Só linhas não lidas: não mexe nas já lidas nem repete tudo na próxima busca.
         await Supabase.instance.client
             .from('notificacoes')
             .update({'lida': true})

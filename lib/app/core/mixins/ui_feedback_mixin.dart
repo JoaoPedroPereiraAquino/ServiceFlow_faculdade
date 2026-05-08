@@ -1,11 +1,11 @@
+// Aviso rápido na tela (barra embaixo) para o usuário saber o que aconteceu.
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
 enum FeedbackKind { success, error, info, warning }
 
-/// Mixin obrigatório para exibir mensagens padronizadas (SnackBar) na UI.
-/// Substitui qualquer uso de `print()` ou diálogos ad-hoc.
 mixin UiFeedbackMixin<T extends StatefulWidget> on State<T> {
   void showFeedback(String message, {FeedbackKind kind = FeedbackKind.info}) {
     if (!mounted) return;

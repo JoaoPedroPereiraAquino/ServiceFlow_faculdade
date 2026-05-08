@@ -1,3 +1,4 @@
+// Tela para criar uma OS: cliente, texto, valor, fotos e assinatura.
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -264,7 +265,6 @@ class _OsFormViewState extends State<OsFormView>
   }
 }
 
-// ============================================================
 class _AssinaturaSection extends StatelessWidget {
   final Uint8List? bytes;
   final String? error;
@@ -360,7 +360,6 @@ class _AssinaturaSection extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _Label extends StatelessWidget {
   final String text;
   final bool error;
@@ -418,7 +417,6 @@ Widget _osFormClienteListItem(
   );
 }
 
-// ============================================================
 class _ClienteDropdown extends StatelessWidget {
   final List<Cliente> clientes;
   final Cliente? selecionado;
@@ -568,7 +566,6 @@ class _ClienteDropdown extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _PhotoSlot extends StatelessWidget {
   final String label;
   final String? filePath;

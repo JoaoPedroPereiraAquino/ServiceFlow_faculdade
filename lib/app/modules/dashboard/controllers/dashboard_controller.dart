@@ -1,3 +1,4 @@
+// Dados do início: usuário, OS e clientes (notifica a tela).
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 
@@ -8,14 +9,12 @@ import '../../client/repositories/cliente_repository.dart';
 import '../../service_order/models/ordem_servico.dart';
 import '../../service_order/repositories/ordem_servico_repository.dart';
 
-/// Controller do Dashboard. `extends ChangeNotifier` (regra do README).
 class DashboardController extends ChangeNotifier {
   final _osRepo = GetIt.I<OrdemServicoRepository>();
   final _cliRepo = GetIt.I<ClienteRepository>();
   final _authRepo = GetIt.I<AuthRepository>();
 
-  /// Há leitura em andamento (SQLite) — exibe barra de progresso fina, sem
-  /// trocar a tela toda (evita “piscar” após sync / primeiro acesso).
+  /// Carregando dados do banco local: barra fina em cima sem trocar a tela inteira.
   bool inFlight = true;
 
   Usuario? usuario;

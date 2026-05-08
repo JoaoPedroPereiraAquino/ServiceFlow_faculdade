@@ -1,3 +1,4 @@
+// Clientes: banco local e servidor (mesma lista para o usuário).
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/repositories/base_repository.dart';
@@ -15,7 +16,7 @@ class ClienteRepository extends BaseRepository<Cliente> {
   @override
   Cliente fromJson(Map<String, dynamic> json) => Cliente.fromJson(json);
 
-  /// Cria localmente e tenta sincronizar imediatamente, se houver sessão online.
+  /// Salva no banco local e envia ao servidor se estiver logado e com internet.
   Future<Cliente> criar(Cliente c) async {
     final user = Supabase.instance.client.auth.currentUser;
     c.userId = user?.id;
@@ -29,8 +30,7 @@ class ClienteRepository extends BaseRepository<Cliente> {
     return c;
   }
 
-  /// Pull incremental: traz apenas registros com `updated_at > lastSync`.
-  /// Na primeira execução pega tudo. Cursor por usuário.
+  /// Baixa do servidor só o que mudou desde a última vez; na primeira, baixa tudo.
   Future<void> pullDoServidor() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
@@ -88,7 +88,7 @@ class ClienteRepository extends BaseRepository<Cliente> {
     return getAllLocal(orderBy: 'nome COLLATE NOCASE ASC');
   }
 
-  /// Sincroniza pendentes (chamado pelo OfflineSyncService).
+  /// Envia ao servidor os registros que ainda estavam só no aparelho.
   Future<int> syncPendentes() async {
     final pending = await getPending();
     if (pending.isEmpty) return 0;
@@ -106,7 +106,7 @@ class ClienteRepository extends BaseRepository<Cliente> {
     return ok;
   }
 
-  /// Quantas ordens de serviço apontam para este cliente (UUID local).
+  /// Quantas OS usam este cliente (id local).
   Future<int> contarOrdensVinculadas(String clienteLocalUuid) async {
     final database = await db;
     final r = await database.rawQuery(
@@ -117,7 +117,7 @@ class ClienteRepository extends BaseRepository<Cliente> {
     return (r.first['c'] as int?) ?? 0;
   }
 
-  /// Atualiza localmente e tenta sincronizar com o Supabase.
+  /// Atualiza no banco local e tenta enviar ao servidor.
   Future<Cliente> atualizar(Cliente c) async {
     final user = Supabase.instance.client.auth.currentUser;
     c.userId = user?.id;
@@ -130,7 +130,7 @@ class ClienteRepository extends BaseRepository<Cliente> {
     return c;
   }
 
-  /// Remove o cliente (local + remoto) se não houver OS vinculadas.
+  /// Apaga no aparelho e no servidor se não houver OS ligada a este cliente.
   Future<void> excluir(Cliente c) async {
     final n = await contarOrdensVinculadas(c.localUuid);
     if (n > 0) {

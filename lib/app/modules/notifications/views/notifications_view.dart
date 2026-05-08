@@ -1,3 +1,4 @@
+// Lista de alertas; puxar para atualizar; toque marca como lido.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 

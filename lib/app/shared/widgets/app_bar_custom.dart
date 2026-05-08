@@ -1,10 +1,9 @@
+// Barra no topo: título, subtítulo e voltar.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
 
-/// AppBar padronizada do ServiceFlow — usa [AppBar] do Material para respeitar
-/// a área segura do status bar (notch / câmera frontal).
 class AppBarCustom extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
@@ -25,7 +24,7 @@ class AppBarCustom extends StatelessWidget implements PreferredSizeWidget {
     return Size.fromHeight(h);
   }
 
-  /// Alinhado ao padding horizontal do corpo das telas (ListView ~20px).
+  /// Mesma margem horizontal do corpo (~20 px) quando não há voltar.
   static const double _titleInsetNoLeading = 20;
 
   @override
@@ -58,8 +57,7 @@ class AppBarCustom extends StatelessWidget implements PreferredSizeWidget {
               onPressed: onBack ?? () => Navigator.of(context).maybePop(),
             )
           : null,
-      // Recuo: com botão voltar, só o gap após o ícone; sem voltar, 20px
-      // (igual ao ListView) — [Padding] evita diferenças de layout do AppBar.
+      // Com voltar: só o espaço após o ícone; sem voltar: 20 px como a lista.
       titleSpacing: canPop ? 8 : 0,
       title: Padding(
         padding: EdgeInsetsDirectional.only(

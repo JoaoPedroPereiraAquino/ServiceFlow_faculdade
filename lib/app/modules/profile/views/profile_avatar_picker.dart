@@ -1,3 +1,4 @@
+// Troca de foto de perfil: arquivo local ou imagem do servidor.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,7 +7,6 @@ import 'package:get_it/get_it.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
 
-/// Avatar com opção trocar / remover. [storageKey] = chave no bucket `perfil-avatars`.
 class ProfileAvatarPicker extends StatelessWidget {
   final String iniciais;
   final String? localFilePath;

@@ -1,7 +1,6 @@
+// Usuário logado; dados batem com o perfil no servidor.
 import '../../../core/models/base_model.dart';
 
-/// Representa o usuário autenticado (técnico/gestor) — espelha
-/// a tabela `profiles` no Supabase.
 class Usuario extends BaseModel {
   String nome;
   String email;
@@ -10,10 +9,10 @@ class Usuario extends BaseModel {
   String? cargo;
   double avaliacao;
   String? token;
-  /// Chave no Storage (`perfil-avatars`), ex.: `<userId>/avatar_....jpg`
+  /// Endereço da foto no armazenamento do servidor.
   String? avatarUrl;
 
-  /// Ficheiro local (foto escolhida offline, ainda por enviar) — não é JSON.
+  /// Foto no aparelho ainda não enviada (não vem do JSON).
   String? avatarPendentePath;
 
   Usuario({

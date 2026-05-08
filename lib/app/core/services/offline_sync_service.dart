@@ -1,3 +1,4 @@
+// Quando a internet volta, envia o que ficou pendente e busca novidades do servidor.
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -9,13 +10,6 @@ import '../../modules/notifications/repositories/notificacao_repository.dart';
 import '../../modules/service_order/repositories/ordem_servico_repository.dart';
 import 'connectivity_service.dart';
 
-/// Serviço central de sincronização offline-first.
-///
-/// - Observa `ConnectivityService.isOnline`.
-/// - Quando volta a ficar online, dispara um sync em background:
-///   1) clientes pendentes -> Supabase
-///   2) ordens de serviço pendentes -> Supabase
-///   3) pull (clientes / OS / notificações) do servidor para o local
 class OfflineSyncService {
   OfflineSyncService({
     required this.authRepo,
@@ -31,10 +25,10 @@ class OfflineSyncService {
   final NotificacaoRepository notifRepo;
   final ConnectivityService connectivity;
 
-  /// `true` enquanto um sync está em andamento.
+  /// Indica se uma rodada de envio/busca está em andamento.
   final ValueNotifier<bool> syncing = ValueNotifier<bool>(false);
 
-  /// Última mensagem amigável de status (UI pode opcionalmente exibir).
+  /// Última mensagem de status (a tela pode mostrar se quiser).
   final ValueNotifier<String?> lastStatus = ValueNotifier<String?>(null);
 
   bool _initialized = false;
@@ -59,15 +53,13 @@ class OfflineSyncService {
     try {
       await authRepo.sincronizarPerfilPendente();
 
-      // 1) Push CLIENTES primeiro — assim, qualquer OS pendente que tenha
-      //    sido criada offline com o cliente também pendente conseguirá
-      //    resolver o cliente_remote_id antes de subir.
+      // 1) Envia clientes primeiro: ordens salvas sem internet ligam ao cliente certo depois.
       final pushedC = await clienteRepo.syncPendentes();
 
-      // 2) Push ORDENS DE SERVIÇO (incluindo upload das fotos no Storage).
+      // 2) Envia ordens de serviço e sobe as fotos para o armazenamento na nuvem.
       final pushedOs = await osRepo.syncPendentes();
 
-      // 3) Pull do servidor para refletir alterações feitas em outros devices.
+      // 3) Baixa do servidor o que mudou em outros aparelhos.
       await clienteRepo.pullDoServidor();
       await osRepo.pullDoServidor();
       await notifRepo.pullDoServidor();

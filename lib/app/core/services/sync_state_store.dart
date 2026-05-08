@@ -1,10 +1,7 @@
+// Guarda quando cada tipo de dado foi atualizado pela última vez (busca só o que é novo).
+// Armazenamento seguro por usuário para não misturar contas.
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Persiste o cursor de pull incremental (`updated_at` do último registro
-/// recebido por entidade) usando armazenamento criptografado.
-///
-/// O cursor é por usuário (`<userId>:<entidade>`) para evitar contaminação
-/// entre contas que tenham logado no mesmo aparelho.
 class SyncStateStore {
   SyncStateStore._();
   static final SyncStateStore instance = SyncStateStore._();

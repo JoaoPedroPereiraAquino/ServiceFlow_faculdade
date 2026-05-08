@@ -1,3 +1,4 @@
+// Título de bloco em lista; opcionalmente um widget à direita.
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';

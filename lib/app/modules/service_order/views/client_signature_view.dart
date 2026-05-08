@@ -1,3 +1,4 @@
+// Assinatura em tela cheia (paisagem); devolve PNG.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:signature/signature.dart';
@@ -6,7 +7,6 @@ import '../../../core/mixins/ui_feedback_mixin.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/custom_button.dart';
 
-/// Captura a assinatura com o telefone em **paisagem** e devolve [Uint8List] PNG.
 class ClientSignatureView extends StatefulWidget {
   const ClientSignatureView({super.key});
 
@@ -23,7 +23,7 @@ class _ClientSignatureViewState extends State<ClientSignatureView>
   );
 
   bool _saving = false;
-  /// Quando [false], só o ícone de “olho” fica visível.
+  /// Se false, mostra só o botão do olho.
   bool _controlesVisiveis = true;
 
   @override
@@ -88,7 +88,7 @@ class _ClientSignatureViewState extends State<ClientSignatureView>
   Widget build(BuildContext context) {
     const acoesW = 140.0;
     const fabBg = 0.94;
-    // Altura aproximada do botão “olho” + margem — evita sobrepor Limpar/Salvar
+    // Espaço para o olho não cobrir Limpar/Salvar.
     const kReservaOlho = 72.0;
 
     Widget olhoAcoes = Material(
@@ -116,7 +116,7 @@ class _ClientSignatureViewState extends State<ClientSignatureView>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Canvas em tela cheia (debaixo de tudo)
+          // Área de assinatura por baixo do resto.
           Material(
             color: AppColors.surface,
             child: Stack(
@@ -225,7 +225,7 @@ class _ClientSignatureViewState extends State<ClientSignatureView>
               ),
             ),
           ],
-          // Olho: sempre no canto inferior direito
+          // Olho fixo no canto inferior direito.
           Positioned(
             right: 6,
             bottom: 4,

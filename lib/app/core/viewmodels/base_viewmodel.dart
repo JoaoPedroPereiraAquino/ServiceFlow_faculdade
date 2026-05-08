@@ -1,9 +1,9 @@
+// Estados comuns (parado, carregando, certo, erro) para as telas.
+
 import 'package:flutter/foundation.dart';
 
 enum ViewState { idle, loading, success, error }
 
-/// ViewModel base — controla estados (loading / sucesso / erro)
-/// e expõe `notifyListeners()` para a View reagir.
 abstract class BaseViewModel<T> extends ChangeNotifier {
   ViewState _state = ViewState.idle;
   ViewState get state => _state;

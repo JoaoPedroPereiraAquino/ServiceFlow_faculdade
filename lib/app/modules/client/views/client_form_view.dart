@@ -1,3 +1,4 @@
+// Novo ou editar cliente: nome, doc e contatos.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -13,7 +14,7 @@ import '../models/cliente.dart';
 import '../repositories/cliente_repository.dart';
 
 class ClientFormView extends StatefulWidget {
-  /// Se preenchido, a tela funciona como edição do cadastro.
+  /// Se vier preenchido, abre em modo edição.
   final Cliente? cliente;
 
   const ClientFormView({super.key, this.cliente});

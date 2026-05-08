@@ -1,3 +1,4 @@
+// Cliente HTTP compartilhado pela API no servidor; coloca o token de login nos pedidos.
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -5,8 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/error_model.dart';
 import 'supabase_config.dart';
 
-/// DioClient — singleton com `Interceptors` para injeção automática
-/// de Token JWT (do Supabase Auth) e mapeamento de erros padrão.
 class DioClient {
   DioClient._internal() {
     _dio = Dio(

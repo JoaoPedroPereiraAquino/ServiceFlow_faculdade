@@ -1,3 +1,4 @@
+// Barra inferior: abas + Nova OS; bolinha nos alertas não lidos.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 

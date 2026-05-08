@@ -1,3 +1,4 @@
+// Guarda OS no aparelho, envia fotos e registro ao servidor quando der.
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/repositories/base_repository.dart';
@@ -18,7 +19,7 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
   @override
   OrdemServico fromJson(Map<String, dynamic> json) => OrdemServico.fromJson(json);
 
-  /// Gera o próximo código sequencial OS-XXXXX (baseado no maior local).
+  /// Próximo código OS-00000 a partir do último salvo aqui.
   Future<String> proximoCodigo() async {
     final database = await db;
     final r = await database.rawQuery(
@@ -35,15 +36,8 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
     return 'OS-${next.toString().padLeft(5, '0')}';
   }
 
-  /// Cria a OS localmente e tenta sincronizar imediatamente.
-  ///
-  /// Fluxo offline-first:
-  ///  1. INSERT no SQLite (com paths locais das fotos) — status `P`.
-  ///  2. Se houver sessão e internet, tenta upload das fotos para o Storage,
-  ///     resolve `cliente_remote_id` (se o cliente já estiver sincronizado),
-  ///     INSERT no Supabase e marca como `S`.
-  ///  3. Em caso de falha em qualquer ponto da etapa 2, a OS continua `P` e
-  ///     o `OfflineSyncService` cuidará do reenvio.
+  /// Grava a OS no aparelho e tenta enviar na hora se estiver logado.
+  /// Se o envio falhar, fica pendente para tentar de novo depois.
   Future<OrdemServico> criar(OrdemServico os) async {
     final user = Supabase.instance.client.auth.currentUser;
     os.userId = user?.id;
@@ -63,7 +57,24 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
     return getAllLocal(orderBy: 'created_at DESC');
   }
 
-  /// Atualiza a OS no SQLite e tenta enviar ao Supabase (offline-first).
+  /// Apaga aqui e no servidor se já tiver id remoto.
+  Future<void> excluir(OrdemServico os) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (os.remoteId != null && os.remoteId!.isNotEmpty && user != null) {
+      try {
+        await Supabase.instance.client
+            .from('ordens_servico')
+            .delete()
+            .eq('id', os.remoteId!);
+      } catch (e, st) {
+        AppLogger.e('os.delete', e, st);
+        rethrow;
+      }
+    }
+    await deleteLocal(os.localUuid);
+  }
+
+  /// Atualiza no aparelho e tenta enviar ao servidor.
   Future<OrdemServico> atualizar(OrdemServico os) async {
     final user = Supabase.instance.client.auth.currentUser;
     os.userId = user?.id;
@@ -78,7 +89,7 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
     return os;
   }
 
-  /// Pull incremental: traz apenas registros com `updated_at > lastSync`.
+  /// Busca só linhas alteradas desde a última vez.
   Future<void> pullDoServidor() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
@@ -133,9 +144,7 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
     }
   }
 
-  /// Sincroniza pendentes — chamado pelo `OfflineSyncService`.
-  /// Para cada OS pendente: faz upload de fotos novas, resolve cliente
-  /// remoto (caso a OS tenha ficado órfã) e envia o registro.
+  /// Envia OS ainda pendentes (fotos e registro).
   Future<int> syncPendentes() async {
     final pending = await getPending();
     if (pending.isEmpty) return 0;
@@ -153,14 +162,10 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
     return ok;
   }
 
-  // ---------------------------------------------------------------------------
-  // Internos
-  // ---------------------------------------------------------------------------
-
-  /// Tenta enviar UMA OS para o Supabase. Retorna `true` em sucesso.
+  /// Envia uma OS ao servidor. true se deu certo.
   Future<bool> _pushOne(OrdemServico os, {required String userId}) async {
     try {
-      // 1) Resolve cliente_remote_id se ainda estiver vazio mas houver UUID local.
+      // Se faltar o id do cliente na nuvem, tenta achar pelo cadastro local.
       if ((os.clienteRemoteId == null || os.clienteRemoteId!.isEmpty) &&
           os.clienteLocalUuid != null) {
         final database = await db;
@@ -176,7 +181,7 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
         }
       }
 
-      // 2) Upload de fotos pendentes.
+      // Sobe fotos que ainda não foram enviadas.
       if (os.fotoAntesPath != null &&
           os.fotoAntesPath!.isNotEmpty &&
           (os.fotoAntesRemotePath == null ||
@@ -206,10 +211,7 @@ class OrdemServicoRepository extends BaseRepository<OrdemServico> {
         }
       }
 
-      // 3) Push do registro: se já existe (`remote_id`), faz UPDATE;
-      //    caso contrário, INSERT por `local_id` (evita duplicação se o
-      //    backend tiver constraint em `local_id`, ou se a OS já chegou
-      //    pelo pull do servidor).
+      // Grava no servidor; se já existir pela OS local, atualiza em vez de duplicar.
       final payload = {
         'user_id': userId,
         'codigo': os.codigo,

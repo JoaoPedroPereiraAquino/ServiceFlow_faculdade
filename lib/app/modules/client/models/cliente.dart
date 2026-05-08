@@ -1,3 +1,4 @@
+// Cliente do usuário logado; dá para usar com ou sem internet.
 import 'package:uuid/uuid.dart';
 
 import '../../../core/models/base_model.dart';

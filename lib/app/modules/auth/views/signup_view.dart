@@ -1,3 +1,4 @@
+// Cadastro com validação de campos e senha.
 import 'package:flutter/material.dart';
 
 import '../../../core/mixins/ui_feedback_mixin.dart';

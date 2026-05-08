@@ -1,3 +1,4 @@
+// Login: valida e, se der certo, abre o app principal.
 import 'package:flutter/material.dart';
 
 import '../../../core/mixins/ui_feedback_mixin.dart';

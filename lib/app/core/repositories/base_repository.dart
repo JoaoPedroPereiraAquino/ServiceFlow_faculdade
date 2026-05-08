@@ -1,3 +1,4 @@
+// Camada que lê e grava: banco local + formato de dados do servidor.
 import 'package:dio/dio.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -5,30 +6,25 @@ import '../models/base_model.dart';
 import '../services/database_helper.dart';
 import '../services/dio_client.dart';
 
-/// Repositório genérico — toda concretização DEVE estendê-lo.
-///
-/// Centraliza:
-/// - acesso ao SQLite (via `DatabaseHelper`)
-/// - acesso à API REST do Supabase (via `DioClient`)
 abstract class BaseRepository<T extends BaseModel> {
   final Dio dio = DioClient.instance.dio;
   final DatabaseHelper helper = DatabaseHelper.instance;
 
   Future<Database> get db => helper.database;
 
-  /// Nome da tabela local correspondente.
+  /// Nome da tabela no banco local.
   String get table;
 
-  /// Endpoint REST do Supabase (ex.: `clientes`, `ordens_servico`).
+  /// Parte do caminho no servidor (ex.: clientes, ordens_servico).
   String get endpoint => table;
 
-  /// Reconstrói uma entidade a partir de uma linha do SQLite.
+  /// Monta o registro a partir de uma linha do banco local.
   T fromMap(Map<String, dynamic> map);
 
-  /// Reconstrói uma entidade a partir do JSON da API.
+  /// Monta o registro a partir dos dados que vêm do servidor.
   T fromJson(Map<String, dynamic> json);
 
-  // ---------- CRUD local ----------
+  // --- gravar, atualizar e apagar no aparelho ---
 
   Future<int> insertLocal(T item) async {
     final database = await db;
@@ -85,7 +81,7 @@ abstract class BaseRepository<T extends BaseModel> {
     return getAllLocal(where: "status = ?", whereArgs: ['P']);
   }
 
-  /// Marca como sincronizado (e armazena o id remoto se vier do servidor).
+  /// Marca como já enviado e guarda o código do servidor, se tiver.
   Future<void> markSynced(String localUuid, {String? remoteId}) async {
     final database = await db;
     await database.update(

@@ -1,4 +1,5 @@
-/// Estrutura padronizada de erro vinda do backend (ver README · OpenAPI).
+/// Forma padrão de mensagem de erro vinda do servidor.
+
 class ErrorModel implements Exception {
   final int codeErro;
   final String titulo;

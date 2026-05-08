@@ -1,9 +1,9 @@
+// Campo de texto com borda, ícone, erro e foco.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
 
-/// CustomTextField padronizado — replica o design system aprovado.
 class CustomTextField extends StatefulWidget {
   final String? label;
   final String? placeholder;

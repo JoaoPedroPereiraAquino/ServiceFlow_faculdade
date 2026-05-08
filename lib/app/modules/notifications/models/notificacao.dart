@@ -1,3 +1,4 @@
+// Um alerta vindo do servidor, mostrado na aba Alertas.
 import 'package:uuid/uuid.dart';
 
 import '../../../core/models/base_model.dart';
@@ -45,9 +46,7 @@ class Notificacao extends BaseModel {
     final remote = j['id'] as String?;
     return Notificacao(
       remoteId: remote,
-      // Usa o `remote_id` como `local_uuid` para a notificação ser
-      // determinística entre pulls — assim o `getByLocalUuid` sempre
-      // encontra o registro local existente e não duplica.
+      // Mesmo id local e remoto: evita duplicar ao buscar de novo.
       localUuid: remote ?? const Uuid().v4(),
       userId: j['user_id'] as String?,
       kind: (j['kind'] as String?) ?? 'info',

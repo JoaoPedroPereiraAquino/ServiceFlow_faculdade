@@ -1,3 +1,4 @@
+// Perfil: resumo de OS, conta, tema e alertas.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -145,7 +146,6 @@ class _ProfileViewState extends State<ProfileView> with UiFeedbackMixin {
     final stats = [
       _Stat('OS no mês', '${_summary.total}'),
       _Stat('Faturamento', _kfmt(_summary.totalValue)),
-      _Stat('Avaliação', (_usuario!.avaliacao).toStringAsFixed(1).replaceAll('.', ',')),
     ];
 
     return Scaffold(
@@ -245,7 +245,6 @@ class _ProfileViewState extends State<ProfileView> with UiFeedbackMixin {
   }
 }
 
-// ============================================================
 class _HeaderCard extends StatelessWidget {
   final Usuario usuario;
   final StorageService storage;
@@ -362,7 +361,7 @@ class _HeaderCard extends StatelessWidget {
 class _HeaderAvatar extends StatelessWidget {
   final String iniciais;
   final String? storageKey;
-  /// Foto escolhida offline (ainda por subir).
+  /// Foto nova ainda só no aparelho.
   final String? localFilePath;
   final StorageService storage;
 
@@ -485,7 +484,6 @@ class _Dot extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _Stat {
   final String label, value;
   _Stat(this.label, this.value);
@@ -540,7 +538,6 @@ class _StatsCard extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _Section extends StatelessWidget {
   final String title;
   final List<_Item> items;

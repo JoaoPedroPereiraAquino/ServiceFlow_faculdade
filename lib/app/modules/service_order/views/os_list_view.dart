@@ -1,15 +1,16 @@
+// Lista OS do aparelho, filtra e abre o detalhe.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../core/mixins/ui_feedback_mixin.dart';
-import '../../../core/services/offline_sync_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/offline_sync_service.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/app_bar_custom.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../models/ordem_servico.dart';
 import '../repositories/ordem_servico_repository.dart';
+import 'os_detail_view.dart';
 
 class OsListView extends StatefulWidget {
   final String initialFilter;
@@ -19,7 +20,7 @@ class OsListView extends StatefulWidget {
   State<OsListView> createState() => _OsListViewState();
 }
 
-class _OsListViewState extends State<OsListView> with UiFeedbackMixin {
+class _OsListViewState extends State<OsListView> {
   late final OrdemServicoRepository _repo = GetIt.I<OrdemServicoRepository>();
   late final OfflineSyncService _sync = GetIt.I<OfflineSyncService>();
 
@@ -45,105 +46,11 @@ class _OsListViewState extends State<OsListView> with UiFeedbackMixin {
     });
   }
 
-  Future<void> _abrirStatus(OrdemServico os) async {
-    OsStatus escolhido = os.osStatus;
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              20 + MediaQuery.viewPaddingOf(ctx).bottom,
-            ),
-            child: StatefulBuilder(
-              builder: (ctx, setS) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      os.codigo,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Status da ordem',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      os.clienteNome ?? 'Cliente',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ...OsStatus.values.map(
-                      (s) => RadioListTile<OsStatus>(
-                        value: s,
-                        groupValue: escolhido,
-                        onChanged: (v) {
-                          if (v != null) setS(() => escolhido = v);
-                        },
-                        title: Text(s.label),
-                        activeColor: AppColors.primary,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text('Aplicar status'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancelar'),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        );
-      },
+  Future<void> _abrirDetalhe(OrdemServico os) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => OsDetailView(ordemInicial: os)),
     );
-    if (ok != true || !mounted) return;
-    if (escolhido == os.osStatus) return;
-    try {
-      os.osStatus = escolhido;
-      await _repo.atualizar(os);
-      if (!mounted) return;
-      showFeedback('Status atualizado', kind: FeedbackKind.success);
-      await _load();
-    } catch (_) {
-      if (!mounted) return;
-      showFeedback('Não foi possível salvar o status. Tente de novo.',
-          kind: FeedbackKind.error);
-    }
+    if (mounted) await _load();
   }
 
   List<OrdemServico> get _filtered {
@@ -231,7 +138,7 @@ class _OsListViewState extends State<OsListView> with UiFeedbackMixin {
                                 const SizedBox(height: 10),
                             itemBuilder: (_, i) => _OsCard(
                               os: filtered[i],
-                              onTap: () => _abrirStatus(filtered[i]),
+                              onTap: () => _abrirDetalhe(filtered[i]),
                             ),
                           ),
                   ),

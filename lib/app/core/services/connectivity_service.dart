@@ -1,12 +1,9 @@
+// Diz se há rede (wifi, dados móveis, etc.) de forma simples para o resto do app.
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 
-/// Wrapper sobre `connectivity_plus` que expõe um `ValueNotifier<bool>`
-/// indicando se há conexão online no momento.
-///
-/// É observado pelo `OfflineSyncService` para disparar a sincronização.
 class ConnectivityService {
   ConnectivityService._();
   static final ConnectivityService instance = ConnectivityService._();

@@ -1,3 +1,4 @@
+// Mostra foto da OS: arquivo local ou imagem pelo caminho no servidor.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,13 +6,6 @@ import 'package:flutter/material.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/app_colors.dart';
 
-/// Renderiza uma evidência fotográfica de OS escolhendo automaticamente
-/// entre `Image.file` (quando há `localPath` disponível e o arquivo existe)
-/// e `Image.network` (gerando uma Signed URL para o `remotePath` no bucket
-/// privado `os-evidencias`).
-///
-/// Centraliza esse comportamento para que telas de listagem, detalhe e
-/// formulário fiquem livres da lógica de "qual fonte usar".
 class EvidenceImage extends StatefulWidget {
   final String? localPath;
   final String? remotePath;

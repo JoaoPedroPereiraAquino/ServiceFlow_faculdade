@@ -1,3 +1,5 @@
+// ServiceFlow — app de ordens de serviço.
+// Configura tema, barra do sistema e tela inicial conforme a sessão na nuvem.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -10,6 +12,7 @@ import 'app/core/theme/app_theme.dart';
 import 'app/modules/auth/views/login_view.dart';
 import 'app/modules/dashboard/views/main_shell.dart';
 
+/// Tema escolhido pelo usuário vira claro/escuro concreto para o sistema.
 Brightness _brightnessForThemeMode(ThemeMode mode) {
   return switch (mode) {
     ThemeMode.light => Brightness.light,
@@ -33,9 +36,7 @@ class ServiceFlowApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: tc,
       builder: (_, __) {
-        // [AppColors] é lido no build das rotas. O `MaterialApp.builder` roda
-        // *depois* de construir a árvore, então sincronizar aqui atrasava um
-        // frame; sem isso, AppBar e bottom bar só atualizam ao trocar de tela.
+        // Ajusta as cores do app e da barra de status ao tema (claro ou escuro).
         final b = _brightnessForThemeMode(tc.mode);
         final dark = b == Brightness.dark;
         AppColors.sync(b);
@@ -61,8 +62,7 @@ class ServiceFlowApp extends StatelessWidget {
   }
 }
 
-/// Gate de autenticação — decide entre Login e MainShell
-/// com base na sessão do Supabase. Reage a `onAuthStateChange`.
+/// Abre o login ou o app principal conforme há sessão ativa na nuvem.
 class _AuthGate extends StatefulWidget {
   const _AuthGate();
 
@@ -89,8 +89,7 @@ class _AuthGateState extends State<_AuthGate> {
   }
 }
 
-/// Tela de splash simples — usada caso futuramente seja necessária
-/// uma transição enquanto o app inicializa.
+/// Tela de espera simples, caso queira mostrar algo ao abrir o app.
 class SplashView extends StatelessWidget {
   const SplashView({super.key});
 

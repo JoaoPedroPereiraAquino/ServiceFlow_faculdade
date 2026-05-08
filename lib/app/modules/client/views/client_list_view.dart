@@ -1,3 +1,4 @@
+// Lista de clientes: toque para editar; excluir só se não tiver OS ligada.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -9,7 +10,6 @@ import '../models/cliente.dart';
 import '../repositories/cliente_repository.dart';
 import 'client_form_view.dart';
 
-/// Lista de clientes com edição e exclusão.
 class ClientListView extends StatefulWidget {
   const ClientListView({super.key});
 

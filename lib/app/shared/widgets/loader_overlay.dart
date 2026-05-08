@@ -1,3 +1,4 @@
+// Camada escura e bloqueio de toques enquanto processa.
 import 'package:flutter/material.dart';
 
 class LoaderOverlay extends StatelessWidget {

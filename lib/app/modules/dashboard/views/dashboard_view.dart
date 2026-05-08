@@ -1,3 +1,4 @@
+// Início: resumo, números de OS, atalhos e últimas ordens.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
@@ -19,12 +20,14 @@ class DashboardView extends StatefulWidget {
   final void Function(String filter) onOpenList;
   final VoidCallback onNewOS;
   final VoidCallback onOpenProfile;
+  final VoidCallback onOpenNotifications;
 
   const DashboardView({
     super.key,
     required this.onOpenList,
     required this.onNewOS,
     required this.onOpenProfile,
+    required this.onOpenNotifications,
   });
 
   @override
@@ -86,7 +89,7 @@ class _DashboardViewState extends State<DashboardView> with UiFeedbackMixin {
                   nome: c.usuario?.nome ?? 'Bem-vindo',
                   iniciais: c.usuario?.iniciais ?? 'SF',
                   onProfile: widget.onOpenProfile,
-                  onBell: () => widget.onOpenList('total'),
+                  onBell: widget.onOpenNotifications,
                   onLogout: _logout,
                 ),
                 _FaturamentoCard(summary: c.summary),
@@ -137,7 +140,7 @@ class _DashboardViewState extends State<DashboardView> with UiFeedbackMixin {
   }
 }
 
-/// Saudação com base no relógio local (5h–12h: bom dia; 12h–18h: boa tarde; resto: boa noite).
+/// Bom dia, boa tarde ou boa noite conforme o horário.
 String _saudacaoPorHora() {
   final h = DateTime.now().hour;
   if (h >= 5 && h < 12) return 'Bom dia';
@@ -145,7 +148,6 @@ String _saudacaoPorHora() {
   return 'Boa noite';
 }
 
-// ============================================================
 class _Header extends StatelessWidget {
   final String nome;
   final String iniciais;
@@ -255,7 +257,6 @@ class _CircleAction extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _FaturamentoCard extends StatelessWidget {
   final OsSummary summary;
   const _FaturamentoCard({required this.summary});
@@ -334,7 +335,6 @@ class _FaturamentoCard extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _KpiGrid extends StatelessWidget {
   final OsSummary summary;
   final void Function(String) onTap;
@@ -466,7 +466,6 @@ class _KpiCard extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _Atalhos extends StatelessWidget {
   final VoidCallback onNewOS;
   final VoidCallback onNewClient;
@@ -611,7 +610,6 @@ class _Atalhos extends StatelessWidget {
   }
 }
 
-// ============================================================
 class _RecentList extends StatelessWidget {
   final List<OrdemServico> items;
   const _RecentList({required this.items});

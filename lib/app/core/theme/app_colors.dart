@@ -1,7 +1,6 @@
+// Cores do app; chame atualização ao mudar claro/escuro para recalcular tons.
 import 'package:flutter/material.dart';
 
-/// Paleta do ServiceFlow — respeita claro/escuro via [sync] (chamado no
-/// `MaterialApp.builder` a partir de [Theme.of]).
 class AppColors {
   AppColors._();
 
@@ -13,7 +12,7 @@ class AppColors {
 
   static bool get isDark => _b == Brightness.dark;
 
-  // Accent
+  // Cor de destaque
   static Color get primary => const Color(0xFF0F766E);
   static Color get primaryDark => const Color(0xFF0B5E58);
   static Color get primaryInk => const Color(0xFF083F3C);
@@ -42,7 +41,7 @@ class AppColors {
   static Color get tint =>
       isDark ? const Color(0xFF134E4A) : const Color(0xFFE6F2F1);
 
-  // Semânticos (ajustados para fundo escuro)
+  // Estados (sucesso, aviso, erro) ajustados para fundo escuro
   static Color get successBg =>
       isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5);
   static Color get successFg =>

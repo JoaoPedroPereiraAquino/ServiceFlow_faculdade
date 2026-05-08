@@ -1,7 +1,7 @@
+// Formata valores e máscaras usados nos campos (moeda Brasil, CPF, telefone, etc.).
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-/// Helpers de formatação (BRL, datas, etc.)
 String fmtBRL(num value) {
   final f = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
   return f.format(value);
@@ -12,6 +12,7 @@ String fmtDateShort(DateTime date) {
 }
 
 String fmtRelative(DateTime date) {
+  // Texto curto para listas (“agora”, “ontem”) em vez da data completa.
   final diff = DateTime.now().difference(date);
   if (diff.inSeconds < 60) return 'agora';
   if (diff.inMinutes < 60) return '${diff.inMinutes} min';
@@ -21,8 +22,7 @@ String fmtRelative(DateTime date) {
   return DateFormat("dd 'de' MMM", 'pt_BR').format(date);
 }
 
-// =================== Máscaras ===================
-
+// Máscaras para campos de texto (CPF/CNPJ, telefone, moeda enquanto digita).
 class _BaseMaskFormatter extends TextInputFormatter {
   final String Function(String digits) format;
   _BaseMaskFormatter(this.format);
@@ -82,6 +82,7 @@ class PhoneFormatter extends _BaseMaskFormatter {
 }
 
 class MoneyFormatter extends TextInputFormatter {
+  // Mostra reais enquanto a pessoa digita só números (valor em centavos).
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,

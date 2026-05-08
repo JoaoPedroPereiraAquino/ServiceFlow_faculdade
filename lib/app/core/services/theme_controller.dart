@@ -1,7 +1,7 @@
+// Lembra se o usuário quer tema claro ou escuro (salvo nas preferências do aparelho).
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Tema claro/escuro persistido; padrão [ThemeMode.light].
 class ThemeController extends ChangeNotifier {
   static const _k = 'sf.theme_mode';
 

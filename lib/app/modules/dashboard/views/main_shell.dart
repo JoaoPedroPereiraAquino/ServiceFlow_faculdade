@@ -1,3 +1,4 @@
+// Abas: início, ordens, alertas e perfil.
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -13,7 +14,6 @@ import '../../service_order/views/os_form_view.dart';
 import '../../service_order/views/os_list_view.dart';
 import 'dashboard_view.dart';
 
-/// Casca principal — abriga as 4 abas do bottom-nav e o botão "Nova OS".
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -23,7 +23,7 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
-  /// Incrementa após criar OS para o [OsListView] remontar e chamar [_load] de novo.
+  /// Sobe após criar uma OS para a lista de ordens recarregar.
   int _osListKey = 0;
 
   late final OfflineSyncService _sync = GetIt.I<OfflineSyncService>();
@@ -33,7 +33,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // Popula o badge a partir do SQLite (funciona offline).
+    // Contador de alertas pelo banco local (vale sem internet).
     _notifRepo.refreshUnreadCount();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _sync.syncAll();
@@ -58,15 +58,14 @@ class _MainShellState extends State<MainShell> {
         },
         onNewOS: _openNewOS,
         onOpenProfile: () => setState(() => _index = 3),
+        onOpenNotifications: () => setState(() => _index = 2),
       ),
       OsListView(key: ValueKey(_osListKey)),
       const NotificationsView(),
       const ProfileView(),
     ];
 
-    // [AppColors] é estático (sincronizado no root) e o shell pode não receber
-    // rebuild com `const` / mesma rota. Escutar [ThemeController] garante que
-    // bottom bar e [Scaffold] acompanhem claro/escuro de imediato.
+    // O tema pode mudar sem remontar esta tela; escutar deixa barra e fundo na hora.
     return ListenableBuilder(
       listenable: GetIt.I<ThemeController>(),
       builder: (context, _) {
@@ -118,7 +117,7 @@ class _OfflineBanner extends StatelessWidget {
                 ? 'Sincronizando dados…'
                 : 'Sem conexão · suas alterações ficam salvas localmente';
 
-            // Altura animada evita o “salto” da coluna ao iniciar/terminar sync.
+            // Anima a altura para o layout não “pular” ao sincronizar.
             return AnimatedSize(
               duration: const Duration(milliseconds: 240),
               curve: Curves.easeOutCubic,

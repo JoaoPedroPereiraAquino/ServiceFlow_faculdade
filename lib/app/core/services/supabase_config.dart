@@ -1,8 +1,5 @@
-/// Configuração estática do Supabase do projeto **ServiceFlow**.
-///
-/// Os valores aqui são **públicos** (anon/publishable). Toda a segurança
-/// real é garantida pelas políticas RLS do banco — cada usuário só
-/// enxerga as próprias linhas (auth.uid() = user_id).
+/// Endereço e chave pública do backend do ServiceFlow.
+/// A chave é pública; quem vê o quê é controlado nas regras do banco no servidor.
 class SupabaseConfig {
   SupabaseConfig._();
 

@@ -1,3 +1,4 @@
+// Login, cadastro, sessão e perfil (servidor, cache e armazenamento seguro).
 import 'dart:async';
 import 'dart:io';
 
@@ -12,8 +13,6 @@ import '../../../core/services/storage_service.dart';
 import '../../../core/services/sync_state_store.dart';
 import '../models/usuario.dart';
 
-/// Repositório de autenticação — usa Supabase Auth + flutter_secure_storage
-/// para o refresh-token e [PerfilCacheService] para o perfil offline.
 class AuthRepository {
   static const _kTokenKey = 'sf.session.token';
 
@@ -37,7 +36,7 @@ class AuthRepository {
     );
   }
 
-  /// Busca o perfil no Supabase, grava no SQLite e devolve, ou `null` em falha.
+  /// Busca o perfil no servidor, grava no banco local ou devolve null se falhar.
   Future<Usuario?> _fetchAndCache(String userId) async {
     try {
       final row = await _client
@@ -71,7 +70,7 @@ class AuthRepository {
       return cached;
     }
 
-    // Sem internet: nunca abre HTTP (evita vários segundos de "carregando").
+    // Sem internet: não chama rede (evita ficar carregando).
     if (!_isOnline) {
       if (cached != null) {
         return cached;
@@ -159,11 +158,9 @@ class AuthRepository {
     return _client.auth.resetPasswordForEmail(email.trim());
   }
 
-  /// Atualiza o perfil no Supabase quando online; só no SQLite se offline
-  /// ([profile_pending_sync] = 1) para envio com [sincronizarPerfilPendente].
+  /// Com internet: grava no servidor. Sem internet: só no banco local; sincroniza ao voltar online.
   ///
-  /// [pendingAvatarPathLocal] — ficheiro copiado no disco (foto a enviar após
-  /// voltar online). Ignorado com rede.
+  /// [pendingAvatarPathLocal]: cópia da foto no aparelho para enviar depois (com internet não usa).
   Future<Usuario> updateProfile({
     required String nome,
     required String email,
@@ -205,7 +202,7 @@ class AuthRepository {
       return u;
     }
 
-    // —— Offline: só persiste no SQLite. ——
+    // Sem internet: só salva no banco local.
     final newLocalPend = clearAvatar
         ? null
         : (pendingAvatarPathLocal ?? base.avatarPendentePath);
@@ -239,8 +236,7 @@ class AuthRepository {
     return u;
   }
 
-  /// Envia alterações pendentes do perfil (após conectividade) — chamado pelo
-  /// [OfflineSyncService].
+  /// Envia alterações de perfil que ficaram pendentes quando voltar online.
   Future<void> sincronizarPerfilPendente() async {
     if (!_isOnline) return;
     final user = _client.auth.currentUser;

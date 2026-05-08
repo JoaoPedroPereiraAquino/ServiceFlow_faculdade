@@ -1,3 +1,4 @@
+// Registro do que o app precisa: nuvem, banco no aparelho, repositórios e trabalho em segundo plano.
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -15,8 +16,7 @@ import 'modules/client/repositories/cliente_repository.dart';
 import 'modules/notifications/repositories/notificacao_repository.dart';
 import 'modules/service_order/repositories/ordem_servico_repository.dart';
 
-/// Inicializa todos os singletons (Supabase, BD local, Dio, repositórios, sync)
-/// — chamado uma única vez antes do `runApp`.
+/// Prepara tudo antes de mostrar a primeira tela (chamado no início do app).
 Future<void> setupApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -27,18 +27,16 @@ Future<void> setupApp() async {
     anonKey: SupabaseConfig.publishableKey,
   );
 
-  // Aquece o singleton (lazy abre depois).
+  // Cria o cliente HTTP cedo para a primeira chamada ao servidor não atrasar.
   // ignore: unused_local_variable
   final dio = DioClient.instance;
 
-  // Banco local
   await DatabaseHelper.instance.database;
 
-  // Conectividade
   final connectivity = ConnectivityService.instance;
   await connectivity.init();
 
-  // Service Locator
+  // Um único objeto de cada tipo, compartilhado por todo o app.
   final getIt = GetIt.instance;
   getIt.registerSingleton<ConnectivityService>(connectivity);
   getIt.registerSingleton<AuthRepository>(AuthRepository());

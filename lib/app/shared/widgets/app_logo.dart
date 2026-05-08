@@ -1,9 +1,9 @@
+// Logo ServiceFlow (etiqueta com check); texto opcional.
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 
-/// Marca do ServiceFlow — variant 'tag' (work-order com check),
-/// como definido no design system.
+/// Marca do app — etiqueta com check.
 class AppLogo extends StatelessWidget {
   final double size;
   final bool withText;
@@ -76,7 +76,7 @@ class _TagPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final s = size.width;
 
-    // Sombra
+    // Sombra por baixo da etiqueta
     final shadowPath = _tagPath(s, dx: 0, dy: 6);
     canvas.drawPath(
       shadowPath,
@@ -85,7 +85,7 @@ class _TagPainter extends CustomPainter {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
-    // Tag com gradiente
+    // Etiqueta com degradê
     final tagPath = _tagPath(s);
     final rect = tagPath.getBounds();
     final gradient = LinearGradient(
@@ -98,7 +98,7 @@ class _TagPainter extends CustomPainter {
       Paint()..shader = gradient.createShader(rect),
     );
 
-    // Furo do crachá
+    // Buraco do crachá
     final hole = Offset(s * 23 / 64, s * 23 / 64);
     canvas.drawCircle(hole, s * 4.2 / 64, Paint()..color = AppColors.bg);
     canvas.drawCircle(hole, s * 2 / 64, Paint()..color = AppColors.primaryDark);
