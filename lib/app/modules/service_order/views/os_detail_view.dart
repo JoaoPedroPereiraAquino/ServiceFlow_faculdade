@@ -8,6 +8,7 @@ import '../../../core/mixins/ui_feedback_mixin.dart';
 import '../../../core/services/offline_sync_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/view_insets.dart';
 import '../../../shared/widgets/app_bar_custom.dart';
 import '../../../shared/widgets/evidence_image.dart';
 import '../../../shared/widgets/status_badge.dart';
@@ -224,7 +225,12 @@ class _OsDetailViewState extends State<OsDetailView> with UiFeedbackMixin {
           await _reload();
         },
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            40 + viewBottomInset(context),
+          ),
           children: [
             Row(
               children: [

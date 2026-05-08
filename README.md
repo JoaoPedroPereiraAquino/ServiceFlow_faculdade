@@ -1,4 +1,4 @@
-# 🚀 Projeto ServiceFlow — Gestão Inteligente de O.S.
+# Projeto ServiceFlow — Gestão Inteligente de O.S.
 
 Aplicativo **Flutter / Android** offline-first para gestão de Ordens de Serviço.
 Salva tudo primeiro no **SQLite** local e sincroniza automaticamente com o
@@ -6,7 +6,7 @@ Salva tudo primeiro no **SQLite** local e sincroniza automaticamente com o
 
 ---
 
-## ✨ Stack
+## Stack
 
 | Camada | Tecnologia |
 | --- | --- |
@@ -22,7 +22,7 @@ Salva tudo primeiro no **SQLite** local e sincroniza automaticamente com o
 
 ---
 
-## 🏗️ Arquitetura — Base-Driven
+## Arquitetura — Base-Driven
 
 ```
 lib/
@@ -60,7 +60,7 @@ lib/
 
 ---
 
-## 🗄️ Banco de Dados Supabase (projeto `ServiceFlow`)
+## Banco de Dados Supabase (projeto `ServiceFlow`)
 
 Projeto: `rccmmsdxueijgoalqnwr` · região `sa-east-1` · Postgres 17.
 
@@ -101,7 +101,7 @@ local do arquivo no device) e `foto_antes_remote_path`/`foto_depois_remote_path`
 
 ---
 
-## 🔄 Fluxo Offline-First
+## Fluxo Offline-First
 
 1. Usuário cadastra cliente / OS → grava no **SQLite** com `status='P'`
    (caminhos locais das fotos em `foto_*_path`).
@@ -124,7 +124,7 @@ Pull-to-refresh no Dashboard, Lista de OS e Notificações força um sync.
 
 ---
 
-## 🛡️ Hardening de produção
+## Hardening de produção
 
 ### Banco (Supabase)
 - RLS ativo em **todas** as 5 tabelas + bucket de Storage.
@@ -171,7 +171,7 @@ Pull-to-refresh no Dashboard, Lista de OS e Notificações força um sync.
 
 ---
 
-## ▶️ Como executar
+## Como executar
 
 ```bash
 # 1. Instalar dependências
@@ -194,7 +194,7 @@ flutter build appbundle --release \
 # saída: build/app/outputs/bundle/release/app-release.aab
 ```
 
-> ⚠️ Para release na Play Store é OBRIGATÓRIO ter o `android/key.properties`
+> Para release na Play Store é OBRIGATÓRIO ter o `android/key.properties`
 > apontando para o `upload-keystore.jks`. Sem isso o build cai pro signing
 > de debug e a Play Store recusa. Veja `android/key.properties.example`.
 
@@ -209,7 +209,7 @@ flutter build appbundle --release \
 
 ---
 
-## 🧪 Testar o fluxo completo
+## Testar o fluxo completo
 
 1. **Criar conta** (Cadastro) — o trigger no Supabase já cria seu `profiles`.
 2. **Login** com o e-mail/senha.
@@ -224,17 +224,17 @@ flutter build appbundle --release \
 
 ---
 
-## 📋 Requisitos atendidos
+## Requisitos atendidos
 
-- **RF01** ✅ Auth Supabase + `flutter_secure_storage` + interceptor JWT no Dio.
-- **RF02** ✅ Offline-first com fila de sync por `status='P'`.
-- **RF03** ✅ Câmera (image_picker) + assinatura digital (signature).
-- **RF04** ✅ Suporte via WhatsApp (link `wa.me`) na tela de Perfil.
-- **RF05** ✅ `CustomTextField`, `CustomButton`, `AppBarCustom`, `StatusBadge`, etc.
+- **RF01** — Auth Supabase + `flutter_secure_storage` + interceptor JWT no Dio.
+- **RF02** — Offline-first com fila de sync por `status='P'`.
+- **RF03** — Câmera (image_picker) + assinatura digital (signature).
+- **RF04** — Suporte via WhatsApp (link `wa.me`) na tela de Perfil.
+- **RF05** — `CustomTextField`, `CustomButton`, `AppBarCustom`, `StatusBadge`, etc.
 
 ---
 
-## 📝 Observações
+## Observações
 - O design das telas espelha o protótipo de `Desing_telas/` (accent **teal**,
   bordas suaves, badges semânticos por status).
 - `BottomNav` aparece apenas nas 4 telas top-level (Dashboard, Ordens,
